@@ -16,7 +16,7 @@ CREATE TABLE "users" (
   "profileimg" text,
   "motto" text,
   "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "dob" date NOT NULL,
+  "dob" timestamptz NOT NULL,
   "rating" integer,
   "problem_solved" integer,
   "admin_id" bigint,
