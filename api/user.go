@@ -7,6 +7,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	// "github.com/lib/pq"
+	"time"
+
 	db "github.com/thewackyindian/3iOj/db/sqlc"
 	util "github.com/thewackyindian/3iOj/utils"
 )
@@ -16,7 +18,7 @@ type createUserRequest struct {
 	Password string `json:"password" binding:"required,min=8"`
 	Name     string `json:"name" binding:"required"`
 	Email    string `json:"email" binding:"required,email"`
-	Dob      string `json:"dob" binding:"required"`
+	Dob      time.Time  `json:"dob" binding:"required"`
 }
 
 func (server *Server) createUser(ctx *gin.Context) {
@@ -36,6 +38,7 @@ func (server *Server) createUser(ctx *gin.Context) {
 		Email:    req.Email,
 		Password: hashedPassword,
 		Dob:      req.Dob,
+	
 	}
 	user, err := server.store.CreateUser(ctx, arg)
 	if err != nil {

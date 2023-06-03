@@ -8,6 +8,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
 const createUser = `-- name: CreateUser :one
@@ -27,7 +28,7 @@ type CreateUserParams struct {
 	Username string    `json:"username"`
 	Email    string    `json:"email"`
 	Password string    `json:"password"`
-	Dob      string `json:"dob"`
+	Dob      time.Time `json:"dob"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -162,7 +163,7 @@ type UpdateUserParams struct {
 	Password   string         `json:"password"`
 	Profileimg sql.NullString `json:"profileimg"`
 	Motto      sql.NullString `json:"motto"`
-	Dob        string      `json:"dob"`
+	Dob        time.Time      `json:"dob"`
 	IsSetter   bool           `json:"is_setter"`
 }
 

@@ -17,7 +17,8 @@ func createRandomUser(t *testing.T) User {
 		Password: 		hashedPassword,
 		Name:       	util.RandomUser(),
 		Email:       	util.RandomEmail(),
-		Dob:           	"2023-05-26T00:00:00Z",
+		Dob:           	time.Date(1990, time.January, 15, 0, 0, 0, 0, time.UTC),
+	
 	}
 
 	user, err := testQueries.CreateUser(context.Background(), arg)
