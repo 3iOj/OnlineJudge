@@ -27,9 +27,19 @@ type Blog struct {
 	VotesCount  sql.NullInt32 `json:"votes_count"`
 }
 
-type BlogAg struct {
-	BlogID int64  `json:"blog_id"`
-	Tag    string `json:"tag"`
+type BlogComment struct {
+	ID           int64          `json:"id"`
+	BlogID       int64          `json:"blog_id"`
+	Message      sql.NullString `json:"message"`
+	CommentedBy  int64          `json:"commented_by"`
+	ChildComment int64          `json:"child_comment"`
+	CreatedAt    time.Time      `json:"created_at"`
+}
+
+type BlogCreator struct {
+	BlogID    int64     `json:"blog_id"`
+	CreatedBy int64     `json:"created_by"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type BlogLike struct {
@@ -39,19 +49,9 @@ type BlogLike struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-type BlogReator struct {
-	BlogID    int64     `json:"blog_id"`
-	CreatedBy int64     `json:"created_by"`
-	CreatedAt time.Time `json:"created_at"`
-}
-
-type Blogcomment struct {
-	ID           int64          `json:"id"`
-	BlogID       int64          `json:"blog_id"`
-	Message      sql.NullString `json:"message"`
-	CommentedBy  int64          `json:"commented_by"`
-	ChildComment int64          `json:"child_comment"`
-	CreatedAt    time.Time      `json:"created_at"`
+type BlogTag struct {
+	BlogID int64  `json:"blog_id"`
+	Tag    string `json:"tag"`
 }
 
 type Community struct {
