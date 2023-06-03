@@ -11,7 +11,7 @@ migratedown:
 sqlc-gen:
 	docker run --rm -v $${pwd}:/src -w /src kjconroy/sqlc generate
 test:
-	got test -v -cover ./...
+	go test -v -cover ./...
 server:
 	go run main.go
 .PHONY:postgres createdb dropdb migrateup migratedown sqlc test server  
