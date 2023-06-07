@@ -1,4 +1,4 @@
-package api
+package user
 
 import (
 	"database/sql"
@@ -6,30 +6,52 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	// "github.com/lib/pq"
+	_ "github.com/lib/pq"
 	"time"
 
 	db "github.com/thewackyindian/3iOj/db/sqlc"
 	util "github.com/thewackyindian/3iOj/utils"
 )
+type Handler struct {
+    // config     util.Config
+    store      *db.Store
+    // tokenMaker token.Maker
+	
+}
 
+func NewHandler(
+    // config util.Config,
+    store *db.Store,
+    // tokenMaker token.Maker,
+) *Handler {
+    return &Handler{
+         store, 
+    }
+}
 type createUserRequest struct {
 	Username string `json:"username" binding:"required,alphanum"`
 	Password string `json:"password" binding:"required,min=8"`
 	Name     string `json:"name" binding:"required"`
 	Email    string `json:"email" binding:"required,email"`
 	Dob      time.Time  `json:"dob" binding:"required"`
+	Profileimg sql.NullString `json:"profileimg"`
+	Motto      sql.NullString `json:"motto"`
+	IsSetter   bool           `json:"is_setter"`
 }
 
-func (server *Server) createUser(ctx *gin.Context) {
+func (handler *Handler) CreateUser(ctx *gin.Context) {
 	var req createUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		ctx.JSON(http.StatusBadRequest, gin.H{
+				"error" : err.Error(),
+		});
 		return
 	}
 	hashedPassword, err := util.HashPassword(req.Password)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+				"error" : err.Error(),
+		});
 		return
 	}
 	arg := db.CreateUserParams{
@@ -38,11 +60,14 @@ func (server *Server) createUser(ctx *gin.Context) {
 		Email:    req.Email,
 		Password: hashedPassword,
 		Dob:      req.Dob,
-	
+		Profileimg : req.Profileimg,
+		Motto: req.Motto,
 	}
-	user, err := server.store.CreateUser(ctx, arg)
+	user, err := handler.store.CreateUser(ctx, arg)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+				"error" : err.Error(),
+		});
 	}
 	// if pqErr, ok := err.(*pq.Error); ok {
 	// 	switch pqErr.Code.Name() {
@@ -54,23 +79,29 @@ func (server *Server) createUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, user)
 }
 
+
+
 type getUserRequest struct {
 	Username string `uri:"username" binding:"required,alphanum"`
 }
 
-func (server *Server) getUser(ctx *gin.Context) {
+func (handler *Handler) GetUser(ctx *gin.Context) {
 	var req getUserRequest
 	if err := ctx.ShouldBindUri(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		ctx.JSON(http.StatusBadRequest, (err))
 		return
 	}
-	user, err := server.store.GetUser(ctx, req.Username)
+	user, err := handler.store.GetUser(ctx, req.Username)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			ctx.JSON(http.StatusNotFound, gin.H{
+				"error" : err.Error(),
+		});
 			return
 		}
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		ctx.JSON(http.StatusInternalServerError,gin.H{
+				"error" : err.Error(),
+		});
 		return
 	}
 
@@ -83,10 +114,12 @@ type listUsersRequest struct {
 	PageSize int32 `form:"page_size"`
 }
 
-func (server *Server) listUsers(ctx *gin.Context) {
+func (handler *Handler) ListUsers(ctx *gin.Context) {
 	var req listUsersRequest
 	if err := ctx.ShouldBindQuery(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		ctx.JSON(http.StatusBadRequest, gin.H{
+				"error" : err.Error(),
+		});
 		return
 	}
 	fmt.Println(req.PageID, req.PageSize)
@@ -101,11 +134,17 @@ func (server *Server) listUsers(ctx *gin.Context) {
 		Offset: (req.PageID - 1) * req.PageSize,
 	}
 
-	accounts, err := server.store.ListUsers(ctx, arg)
+	accounts, err := handler.store.ListUsers(ctx, arg)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+				"error" : err.Error(),
+		});
 		return
 	}
 
 	ctx.JSON(http.StatusOK, accounts)
 }
+
+
+
+

@@ -17,18 +17,22 @@ INSERT INTO users (
   username,
   email,
   password,
-  dob
+  dob,
+  profileimg,
+  motto
 ) VALUES (
-  $1, $2, $3, $4, $5
+  $1, $2, $3, $4, $5, $6, $7
 ) RETURNING id, name, username, email, password, profileimg, motto, created_at, dob, rating, problem_solved, admin_id, is_setter
 `
 
 type CreateUserParams struct {
-	Name     string    `json:"name"`
-	Username string    `json:"username"`
-	Email    string    `json:"email"`
-	Password string    `json:"password"`
-	Dob      time.Time `json:"dob"`
+	Name       string         `json:"name"`
+	Username   string         `json:"username"`
+	Email      string         `json:"email"`
+	Password   string         `json:"password"`
+	Dob        time.Time      `json:"dob"`
+	Profileimg sql.NullString `json:"profileimg"`
+	Motto      sql.NullString `json:"motto"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -38,6 +42,8 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		arg.Email,
 		arg.Password,
 		arg.Dob,
+		arg.Profileimg,
+		arg.Motto,
 	)
 	var i User
 	err := row.Scan(
