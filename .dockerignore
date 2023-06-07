@@ -1,0 +1,22 @@
+# Ignore node_modules directory
+node_modules
+
+# Ignore development-related files
+package-lock.json
+yarn.lock
+*.log
+*.env
+
+# Ignore Golang testing and profiling files
+*.test
+*.prof
+
+# Ignore build artifacts
+/build
+/dist
+
+# Ignore database dump files
+*.dump
+
+# Ignore OS-generated files
+.DS_Store
