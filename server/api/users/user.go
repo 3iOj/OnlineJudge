@@ -5,23 +5,25 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
-	_ "github.com/lib/pq"
 	"time"
 
+	"github.com/gin-gonic/gin"
+	_ "github.com/lib/pq"
+
+	// "gopkg.in/guregu/null.v4"
 	db "github.com/thewackyindian/3iOj/db/sqlc"
 	util "github.com/thewackyindian/3iOj/utils"
 )
 type Handler struct {
     // config     util.Config
-    store      *db.Store
+    store      db.Store
     // tokenMaker token.Maker
 	
 }
 
 func NewHandler(
     // config util.Config,
-    store *db.Store,
+    store db.Store,
     // tokenMaker token.Maker,
 ) *Handler {
     return &Handler{
@@ -33,10 +35,10 @@ type createUserRequest struct {
 	Password string `json:"password" binding:"required,min=8"`
 	Name     string `json:"name" binding:"required"`
 	Email    string `json:"email" binding:"required,email"`
-	Dob      time.Time  `json:"dob" binding:"required"`
-	Profileimg sql.NullString `json:"profileimg"`
-	Motto      sql.NullString `json:"motto"`
-	IsSetter   bool           `json:"is_setter"`
+	Dob      time.Time  `json:"dob" binding:"required"`		
+	Profileimg string `json:"profileimg"`
+	Motto      string `json:"motto"`
+	IsSetter   bool   `json:"is_setter"`
 }
 
 func (handler *Handler) CreateUser(ctx *gin.Context) {
@@ -45,8 +47,10 @@ func (handler *Handler) CreateUser(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 				"error" : err.Error(),
 		});
+		
 		return
 	}
+	
 	hashedPassword, err := util.HashPassword(req.Password)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -60,8 +64,8 @@ func (handler *Handler) CreateUser(ctx *gin.Context) {
 		Email:    req.Email,
 		Password: hashedPassword,
 		Dob:      req.Dob,
-		Profileimg : req.Profileimg,
-		Motto: req.Motto,
+		Profileimg : sql.NullString{String: req.Profileimg, Valid: true},
+		Motto: sql.NullString{String: req.Motto, Valid: true},
 	}
 	user, err := handler.store.CreateUser(ctx, arg)
 	if err != nil {

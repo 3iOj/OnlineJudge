@@ -10,11 +10,11 @@ import (
 
 //here we implement our HTTP API server
 type Server struct {
-	store *db.Store
+	store db.Store
 	router *gin.Engine
 }
 
-func NewServer(store *db.Store) *Server{
+func NewServer(store db.Store) *Server{
 	server := &Server{store: store}
 	router := gin.Default()
 
@@ -26,6 +26,8 @@ func NewServer(store *db.Store) *Server{
     )
 
     router.POST("/users", userHandler.CreateUser)
+	router.GET("/users", userHandler.ListUsers)
+	router.GET("/users/:username", userHandler.GetUser)
 
 
 	contestHandler := contest.NewHandler(
