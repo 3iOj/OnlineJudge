@@ -15,14 +15,14 @@ import (
 )
 type Handler struct {
     // config     util.Config
-    store      *db.Store
+    store      db.Store
     // tokenMaker token.Maker
 	
 }
 
 func NewHandler(
     // config util.Config,
-    store *db.Store,
+    store db.Store,
     // tokenMaker token.Maker,
 ) *Handler {
     return &Handler{
