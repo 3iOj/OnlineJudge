@@ -20,7 +20,7 @@ func createRandomUser(t *testing.T) User {
 		Dob:           	time.Date(1990, time.January, 15, 0, 0, 0, 0, time.UTC),
 	
 	}
-
+	
 	user, err := testQueries.CreateUser(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, user)

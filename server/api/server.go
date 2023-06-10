@@ -29,6 +29,7 @@ func NewServer(store db.Store) *Server{
     router.POST("/users", userHandler.CreateUser)
 	router.GET("/users", userHandler.ListUsers)
 	router.GET("/users/:username", userHandler.GetUser)
+    router.PUT("/users/:username", userHandler.UpdateUser)
 
 	contestHandler := contest.NewHandler(
         // server.config,

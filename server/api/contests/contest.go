@@ -34,7 +34,7 @@ type createContestRequest struct {
 	ContestName       string    `json:"contest_name"`
 	StartTime         time.Time `json:"start_time"`
 	EndTime           time.Time `json:"end_time"`
-	Duration          time.Duration     `json:"duration"`
+	Duration          int64     `json:"duration"`
 	RegistrationStart time.Time `json:"registration_start"`
 	RegistrationEnd   time.Time `json:"registration_end"`
 	AnnouncementBlog  int64     `json:"announcement_blog"`
@@ -107,8 +107,8 @@ func (handler *Handler) GetContest(ctx *gin.Context) {
 
 //  binding logic here ?...
 type listContestsRequest struct {
-	PageID   int32 `form:"page_id" binding:"required,min=1"`
-	PageSize int32 `form:"page_size" binding:"required,min=5,max=10"`
+	PageID   int32 `form:"page_id"`
+	PageSize int32 `form:"page_size"`
 }
 
 func (handler *Handler) ListContests(ctx *gin.Context) {

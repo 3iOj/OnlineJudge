@@ -69,8 +69,8 @@ type Contest struct {
 	// must be greater than start time
 	EndTime time.Time `json:"end_time"`
 	// must be equal to difference between end time and start time
-	Duration          time.Duration `json:"duration"`
-	RegistrationStart time.Time     `json:"registration_start"`
+	Duration          int64     `json:"duration"`
+	RegistrationStart time.Time `json:"registration_start"`
 	// must be greater than registration_start
 	RegistrationEnd time.Time `json:"registration_end"`
 	// should be created automatically

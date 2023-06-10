@@ -47,14 +47,14 @@ INSERT INTO contests (
 `
 
 type CreateContestParams struct {
-	ContestName       string        `json:"contest_name"`
-	StartTime         time.Time     `json:"start_time"`
-	EndTime           time.Time     `json:"end_time"`
-	Duration          time.Duration `json:"duration"`
-	RegistrationStart time.Time     `json:"registration_start"`
-	RegistrationEnd   time.Time     `json:"registration_end"`
-	AnnouncementBlog  int64         `json:"announcement_blog"`
-	EditorialBlog     int64         `json:"editorial_blog"`
+	ContestName       string    `json:"contest_name"`
+	StartTime         time.Time `json:"start_time"`
+	EndTime           time.Time `json:"end_time"`
+	Duration          int64     `json:"duration"`
+	RegistrationStart time.Time `json:"registration_start"`
+	RegistrationEnd   time.Time `json:"registration_end"`
+	AnnouncementBlog  int64     `json:"announcement_blog"`
+	EditorialBlog     int64     `json:"editorial_blog"`
 }
 
 func (q *Queries) CreateContest(ctx context.Context, arg CreateContestParams) (Contest, error) {

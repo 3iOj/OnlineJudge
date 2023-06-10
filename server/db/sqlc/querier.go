@@ -12,17 +12,22 @@ type Querier interface {
 	AddContestCreators(ctx context.Context, arg AddContestCreatorsParams) (ContestCreator, error)
 	CreateBlog(ctx context.Context, arg CreateBlogParams) (Blog, error)
 	CreateContest(ctx context.Context, arg CreateContestParams) (Contest, error)
+	CreateProblem(ctx context.Context, arg CreateProblemParams) (Problem, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteBlog(ctx context.Context, id int64) error
 	DeleteContest(ctx context.Context, id int64) error
+	DeleteProblem(ctx context.Context, id int64) error
 	DeleteUser(ctx context.Context, username string) error
 	GetBlog(ctx context.Context, id int64) (Blog, error)
 	GetContest(ctx context.Context, id int64) (Contest, error)
+	GetProblem(ctx context.Context, id int64) (Problem, error)
 	GetUser(ctx context.Context, username string) (User, error)
 	ListBlogs(ctx context.Context, arg ListBlogsParams) ([]Blog, error)
 	ListContests(ctx context.Context, arg ListContestsParams) ([]Contest, error)
+	ListProblems(ctx context.Context, arg ListProblemsParams) ([]Problem, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error)
 	UpdateBlog(ctx context.Context, arg UpdateBlogParams) (Blog, error)
+	UpdateProblem(ctx context.Context, arg UpdateProblemParams) (Problem, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 	Updateblog(ctx context.Context, arg UpdateblogParams) (Blog, error)
 }
