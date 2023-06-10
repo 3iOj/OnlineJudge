@@ -56,10 +56,10 @@ func (handler *Handler) CreateBlog(ctx *gin.Context) {
 		})
 	}
 
-	// Perform the redirection to the created blog page
-	blogID := blog.ID
-	redirectURL := fmt.Sprintf("/blogs/%d", blogID)
-	ctx.Redirect(http.StatusMovedPermanently, redirectURL)
+	// // Perform the redirection to the created blog page
+	// blogID := blog.ID
+	// redirectURL := fmt.Sprintf("/blogs/%d", blogID)
+	// ctx.Redirect(http.StatusMovedPermanently, redirectURL)
 
 	ctx.JSON(http.StatusOK, blog)
 	

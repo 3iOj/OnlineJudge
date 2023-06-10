@@ -69,12 +69,12 @@ func (handler *Handler) CreateContest(ctx *gin.Context) {
 		})
 	}
 
-	// Perform the redirection to the created contest page
-	contestID := contest.ID
-	redirectURL := fmt.Sprintf("/contests/%d", contestID)
-	ctx.Redirect(http.StatusMovedPermanently, redirectURL)
+	// // Perform the redirection to the created contest page
+	// contestID := contest.ID
+	// redirectURL := fmt.Sprintf("/contests/%d", contestID)
+	// ctx.Redirect(http.StatusMovedPermanently, redirectURL)
 
-	// ctx.JSON(http.StatusOK, contest)--?
+	ctx.JSON(http.StatusOK, contest)
 	
 }
 type getContestRequest struct {
