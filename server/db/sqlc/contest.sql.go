@@ -47,14 +47,14 @@ INSERT INTO contests (
 `
 
 type CreateContestParams struct {
-	ContestName       string    `json:"contest_name"`
-	StartTime         time.Time `json:"start_time"`
-	EndTime           time.Time `json:"end_time"`
-	Duration          int64     `json:"duration"`
-	RegistrationStart time.Time `json:"registration_start"`
-	RegistrationEnd   time.Time `json:"registration_end"`
-	AnnouncementBlog  int64     `json:"announcement_blog"`
-	EditorialBlog     int64     `json:"editorial_blog"`
+	ContestName       string        `json:"contest_name"`
+	StartTime         time.Time     `json:"start_time"`
+	EndTime           time.Time     `json:"end_time"`
+	Duration          time.Duration `json:"duration"`
+	RegistrationStart time.Time     `json:"registration_start"`
+	RegistrationEnd   time.Time     `json:"registration_end"`
+	AnnouncementBlog  int64         `json:"announcement_blog"`
+	EditorialBlog     int64         `json:"editorial_blog"`
 }
 
 func (q *Queries) CreateContest(ctx context.Context, arg CreateContestParams) (Contest, error) {
@@ -83,6 +83,16 @@ func (q *Queries) CreateContest(ctx context.Context, arg CreateContestParams) (C
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const deleteContest = `-- name: DeleteContest :exec
+DELETE FROM contests
+WHERE id = $1
+`
+
+func (q *Queries) DeleteContest(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteContest, id)
+	return err
 }
 
 const getContest = `-- name: GetContest :one

@@ -22,8 +22,9 @@ type Blog struct {
 	ID          int64         `json:"id"`
 	BlogTitle   string        `json:"blog_title"`
 	BlogContent string        `json:"blog_content"`
-	CreatedBy   int64         `json:"created_by"`
+	CreatedBy   string        `json:"created_by"`
 	CreatedAt   time.Time     `json:"created_at"`
+	PublishAt   time.Time     `json:"publish_at"`
 	VotesCount  sql.NullInt32 `json:"votes_count"`
 }
 
@@ -34,12 +35,6 @@ type BlogComment struct {
 	CommentedBy  int64          `json:"commented_by"`
 	ChildComment int64          `json:"child_comment"`
 	CreatedAt    time.Time      `json:"created_at"`
-}
-
-type BlogCreator struct {
-	BlogID    int64     `json:"blog_id"`
-	CreatedBy int64     `json:"created_by"`
-	CreatedAt time.Time `json:"created_at"`
 }
 
 type BlogLike struct {
@@ -74,8 +69,8 @@ type Contest struct {
 	// must be greater than start time
 	EndTime time.Time `json:"end_time"`
 	// must be equal to difference between end time and start time
-	Duration          int64     `json:"duration"`
-	RegistrationStart time.Time `json:"registration_start"`
+	Duration          time.Duration `json:"duration"`
+	RegistrationStart time.Time     `json:"registration_start"`
 	// must be greater than registration_start
 	RegistrationEnd time.Time `json:"registration_end"`
 	// should be created automatically
