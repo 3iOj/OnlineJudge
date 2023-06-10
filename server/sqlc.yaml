@@ -10,3 +10,6 @@ packages:
     emit_interface: true 
     emit_exact_table_names: false
     emit_empty_slices: true
+overrides:
+      - column: "contests.duration"
+        go_type: "time.Duration"
