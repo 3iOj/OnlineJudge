@@ -96,7 +96,7 @@ CREATE TABLE "contests" (
   "contest_name" text NOT NULL,
   "start_time" timestamptz NOT NULL,
   "end_time" timestamptz NOT NULL,
-  "duration" interval NOT NULL,
+  "duration" bigint NOT NULL,
   "registration_start" timestamptz NOT NULL,
   "registration_end" timestamptz NOT NULL,
   "announcement_blog" bigint NOT NULL,
