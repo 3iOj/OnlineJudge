@@ -1,7 +1,7 @@
 package contest
 
 import (
-	// "database/sql"
+	"database/sql"
 	"fmt"
 	"net/http"
 
@@ -30,79 +30,11 @@ func NewHandler(
     }
 }
 
-
-
-
-
-// type getUserRequest struct {
-// 	Username string `uri:"username" binding:"required,alphanum"`
-// }
-
-// func (handler *Handler) GetUser(ctx *gin.Context) {
-// 	var req getUserRequest
-// 	if err := ctx.ShouldBindUri(&req); err != nil {
-// 		ctx.JSON(http.StatusBadRequest, (err))
-// 		return
-// 	}
-// 	user, err := handler.store.GetUser(ctx, req.Username)
-// 	if err != nil {
-// 		if err == sql.ErrNoRows {
-// 			ctx.JSON(http.StatusNotFound, gin.H{
-// 				"error" : err.Error(),
-// 		});
-// 			return
-// 		}
-// 		ctx.JSON(http.StatusInternalServerError,gin.H{
-// 				"error" : err.Error(),
-// 		});
-// 		return
-// 	}
-
-// 	ctx.JSON(http.StatusOK, user)
-// }
-
-// // binding logic here ?...
-// type listUsersRequest struct {
-// 	PageID   int32 `form:"page_id"`
-// 	PageSize int32 `form:"page_size"`
-// }
-
-// func (handler *Handler) ListUsers(ctx *gin.Context) {
-// 	var req listUsersRequest
-// 	if err := ctx.ShouldBindQuery(&req); err != nil {
-// 		ctx.JSON(http.StatusBadRequest, gin.H{
-// 				"error" : err.Error(),
-// 		});
-// 		return
-// 	}
-// 	fmt.Println(req.PageID, req.PageSize)
-// 	if req.PageID == 0 {
-// 		req.PageID = 1
-// 	}
-// 	if req.PageSize == 0 {
-// 		req.PageSize = 5
-// 	}
-// 	arg := db.ListUsersParams{
-// 		Limit:  req.PageSize,
-// 		Offset: (req.PageID - 1) * req.PageSize,
-// 	}
-
-// 	accounts, err := handler.store.ListUsers(ctx, arg)
-// 	if err != nil {
-// 		ctx.JSON(http.StatusInternalServerError, gin.H{
-// 				"error" : err.Error(),
-// 		});
-// 		return
-// 	}
-
-// 	ctx.JSON(http.StatusOK, accounts)
-// }
-
 type createContestRequest struct {
 	ContestName       string    `json:"contest_name"`
 	StartTime         time.Time `json:"start_time"`
 	EndTime           time.Time `json:"end_time"`
-	Duration          int64     `json:"duration"`
+	Duration          time.Duration     `json:"duration"`
 	RegistrationStart time.Time `json:"registration_start"`
 	RegistrationEnd   time.Time `json:"registration_end"`
 	AnnouncementBlog  int64     `json:"announcement_blog"`
@@ -116,7 +48,9 @@ func (handler *Handler) CreateContest(ctx *gin.Context) {
 		})
 		return
 	}
-	//end time , blogs logic
+	// conditions related to contest timings
+    fmt.Print(req);
+
 
 	arg := db.CreateContestParams{
 		ContestName: req.ContestName,
@@ -134,11 +68,76 @@ func (handler *Handler) CreateContest(ctx *gin.Context) {
 			"error" : err.Error(),
 		})
 	}
+
 	// Perform the redirection to the created contest page
 	contestID := contest.ID
-	redirectURL := fmt.Sprintf("/contest/%d", contestID)
+	redirectURL := fmt.Sprintf("/contests/%d", contestID)
 	ctx.Redirect(http.StatusMovedPermanently, redirectURL)
 
 	// ctx.JSON(http.StatusOK, contest)--?
 	
+}
+type getContestRequest struct {
+	ID int64 `uri:"id" binding:"required,num"`
+}
+
+func (handler *Handler) GetContest(ctx *gin.Context) {
+	var req getContestRequest
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, (err))
+		return
+	}
+	contest, err := handler.store.GetContest(ctx, req.ID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, gin.H{
+				"error" : err.Error(),
+		});
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError,gin.H{
+				"error" : err.Error(),
+		});
+		return
+	}
+
+	ctx.JSON(http.StatusOK, contest)
+}
+
+
+//  binding logic here ?...
+type listContestsRequest struct {
+	PageID   int32 `form:"page_id" binding:"required,min=1"`
+	PageSize int32 `form:"page_size" binding:"required,min=5,max=10"`
+}
+
+func (handler *Handler) ListContests(ctx *gin.Context) {
+	var req listContestsRequest
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+				"error" : err.Error(),
+		});
+		return
+	}
+	fmt.Println(req.PageID, req.PageSize)
+	if req.PageID == 0 {
+		req.PageID = 1
+	}
+	if req.PageSize == 0 {
+		req.PageSize = 5
+	}
+	arg := db.ListContestsParams{
+		Limit:  req.PageSize,
+		Offset: (req.PageID - 1) * req.PageSize,
+	}
+
+	contests, err := handler.store.ListContests(ctx, arg)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+				"error" : err.Error(),
+		});
+		return
+	}
+
+	ctx.JSON(http.StatusOK, contests)
 }

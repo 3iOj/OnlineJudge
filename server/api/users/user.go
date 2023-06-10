@@ -138,7 +138,7 @@ func (handler *Handler) ListUsers(ctx *gin.Context) {
 		Offset: (req.PageID - 1) * req.PageSize,
 	}
 
-	accounts, err := handler.store.ListUsers(ctx, arg)
+	users, err := handler.store.ListUsers(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 				"error" : err.Error(),
@@ -146,7 +146,7 @@ func (handler *Handler) ListUsers(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, accounts)
+	ctx.JSON(http.StatusOK, users)
 }
 
 
