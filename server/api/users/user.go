@@ -187,13 +187,13 @@ type updateUser struct {
 	Username string `uri:"username" binding:"required,alphanum"`
 }
 type updateUserRequest struct {
-    Password   sql.NullString `json:"password"`
-    Name       sql.NullString `json:"name"`
-    Email      sql.NullString `json:"email"`
-    Dob        sql.NullTime   `json:"dob"`
-    Profileimg sql.NullString `json:"profileimg"`
-    Motto      sql.NullString `json:"motto"`
-    IsSetter   sql.NullBool   `json:"is_setter"`
+    Password   string `json:"password"`
+    Name       string `json:"name"`
+    Email      string `json:"email"`
+    Dob        time.Time `json:"dob"`
+    Profileimg string `json:"profileimg"`
+    Motto      string `json:"motto"`
+    IsSetter   bool   `json:"is_setter"`
 }
 
 func (handler *Handler) UpdateUser(ctx *gin.Context) {
@@ -214,7 +214,7 @@ func (handler *Handler) UpdateUser(ctx *gin.Context) {
 		})
 		return
 	}
-	hashedUpdatedPassword, err := util.HashPassword(req.Password.String)
+	hashedUpdatedPassword, err := util.HashPassword(req.Password)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -222,16 +222,16 @@ func (handler *Handler) UpdateUser(ctx *gin.Context) {
 		return
 	}
 	arg := db.UpdateUserParams{
-		Name:     req.Name,
+		Name:     sql.NullString{String: req.Name, Valid:true},
 		Username: user.Username,
-		Email:    req.Email,
+		Email:    sql.NullString{String: req.Email, Valid:true},
 		Password: sql.NullString{
 			String: hashedUpdatedPassword,
 			Valid:  true,
 		},
-		Dob:        req.Dob,
-		Profileimg: req.Profileimg,
-		Motto:      req.Motto,
+		Dob:        sql.NullTime{Time: req.Dob, Valid:true},
+		Profileimg: sql.NullString{String: req.Profileimg, Valid: true},
+		Motto:      sql.NullString{String: req.Motto, Valid: true},
 	}
 
 	updatedUser, err := handler.store.UpdateUser(ctx, arg)
