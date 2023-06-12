@@ -9,44 +9,47 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 
+	"github.com/thewackyindian/3iOj/api/middleware"
 	db "github.com/thewackyindian/3iOj/db/sqlc"
+	"github.com/thewackyindian/3iOj/token"
+	util "github.com/thewackyindian/3iOj/utils"
 )
-type Handler struct {
-    // config     util.Config
-    store      db.Store
-    // tokenMaker token.Maker
-	
-}
 
+type Handler struct {
+	config     util.Config
+	store db.Store
+	tokenMaker token.Maker
+}
 func NewHandler(
-    // config util.Config,
-    store db.Store,
-    // tokenMaker token.Maker,
+	config util.Config,
+	store db.Store,
+	tokenMaker token.Maker,
 ) *Handler {
-    return &Handler{
-         store, 
-    }
+	return &Handler{
+		config,store, tokenMaker,
+	}
 }
 
 type createBlogRequest struct {
 	BlogTitle   string `json:"blog_title"`
 	BlogContent string `json:"blog_content"`
-	CreatedBy   string  `json:"created_by"`
 	PublishAt   time.Time `json:"publish_at"`
 }	
 func (handler *Handler) CreateBlog(ctx *gin.Context) {
 	var req createBlogRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest,gin.H{
-		"error" : err.Error(),
+			"error" : err.Error(),
 		})
 		return
 	}
-
+	fmt.Println(ctx)
+	//ctx.mustget returns a general interface therefore we are casting it to a token.payload object
+	authPayload := ctx.MustGet(middleware.AuthorizationPayloadKey).(*token.Payload)
 	arg := db.CreateBlogParams{
 		BlogTitle: req.BlogTitle,
 	    BlogContent:req.BlogContent,
-	    CreatedBy: req.CreatedBy,
+	    CreatedBy: authPayload.Username,
 		PublishAt: req.PublishAt,
 	}
 	blog, err := handler.store.CreateBlog(ctx, arg)
@@ -55,11 +58,6 @@ func (handler *Handler) CreateBlog(ctx *gin.Context) {
 			"error" : err.Error(),
 		})
 	}
-
-	// // Perform the redirection to the created blog page
-	// blogID := blog.ID
-	// redirectURL := fmt.Sprintf("/blogs/%d", blogID)
-	// ctx.Redirect(http.StatusMovedPermanently, redirectURL)
 
 	ctx.JSON(http.StatusOK, blog)
 	

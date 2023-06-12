@@ -2,6 +2,7 @@ package user
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -11,24 +12,24 @@ import (
 	_ "github.com/lib/pq"
 
 	// "gopkg.in/guregu/null.v4"
+	"github.com/thewackyindian/3iOj/api/middleware"
 	db "github.com/thewackyindian/3iOj/db/sqlc"
+	"github.com/thewackyindian/3iOj/token"
 	util "github.com/thewackyindian/3iOj/utils"
 )
 
 type Handler struct {
-	// config     util.Config
+	config     util.Config
 	store db.Store
-	// tokenMaker token.Maker
-
+	tokenMaker token.Maker
 }
-
 func NewHandler(
-	// config util.Config,
+	config util.Config,
 	store db.Store,
-	// tokenMaker token.Maker,
+	tokenMaker token.Maker,
 ) *Handler {
 	return &Handler{
-		store,
+		config,store, tokenMaker,
 	}
 }
 
@@ -183,6 +184,71 @@ func (handler *Handler) ListUsers(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, rsp)
 }
 
+
+
+type loginUserRequest struct {
+	Username   string    `json:"username" binding:"required,alphanum"`
+	Password   string    `json:"password" binding:"required,min=8"`
+}
+
+type loginUserResponse struct {
+	AccessToken           string       `json:"access_token"`
+	User                  userResponse `json:"user"`
+}
+
+
+
+func (handler *Handler) LoginUser(ctx *gin.Context) {
+	var req loginUserRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest,  gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	user, err := handler.store.GetUser(ctx, req.Username)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound,  gin.H{
+			"error": err.Error(),
+			})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError,  gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	err = util.CheckPassword(req.Password, user.Password)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	accessToken, payload,err := handler.tokenMaker.CreateToken(
+		user.Username,
+		handler.config.AccessTokenDuration,
+	)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	fmt.Print(payload)
+
+	rsp := loginUserResponse{
+		AccessToken:           accessToken,
+		User:                  newUserResponse(user),
+	}
+	ctx.JSON(http.StatusOK, rsp)
+}
+
 type updateUser struct {
 	Username string `uri:"username" binding:"required,alphanum"`
 }
@@ -199,9 +265,7 @@ type updateUserRequest struct {
 func (handler *Handler) UpdateUser(ctx *gin.Context) {
 	var user updateUser
 	var req updateUserRequest
-	//incoming request must have nested json objects
-	//bceause sql.nullstring requires two keys, string and valid for
-	//smooth binding here -- take care of this
+
 	if err := ctx.ShouldBindUri(&user); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
@@ -214,6 +278,15 @@ func (handler *Handler) UpdateUser(ctx *gin.Context) {
 		})
 		return
 	}
+	authPayload := ctx.MustGet(middleware.AuthorizationPayloadKey).(*token.Payload)
+	if authPayload.Username != user.Username {
+		err := errors.New("account doesn't belong to the authenticated user")
+		ctx.JSON(http.StatusUnauthorized,gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
 	hashedUpdatedPassword, err := util.HashPassword(req.Password)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -245,3 +318,5 @@ func (handler *Handler) UpdateUser(ctx *gin.Context) {
 	rsp := newUserResponse(updatedUser)
 	ctx.JSON(http.StatusOK, rsp)
 }
+
+

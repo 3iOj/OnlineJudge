@@ -11,34 +11,34 @@ import (
 	_ "github.com/lib/pq"
 
 	db "github.com/thewackyindian/3iOj/db/sqlc"
-	// util "github.com/thewackyindian/3iOj/utils"
+	"github.com/thewackyindian/3iOj/token"
+	util "github.com/thewackyindian/3iOj/utils"
 )
-type Handler struct {
-    // config     util.Config
-    store      db.Store
-    // tokenMaker token.Maker
-	
-}
 
+type Handler struct {
+	config     util.Config
+	store db.Store
+	tokenMaker token.Maker
+}
 func NewHandler(
-    // config util.Config,
-    store db.Store,
-    // tokenMaker token.Maker,
+	config util.Config,
+	store db.Store,
+	tokenMaker token.Maker,
 ) *Handler {
-    return &Handler{
-         store, 
-    }
+	return &Handler{
+		config,store, tokenMaker,
+	}
 }
 
 type createContestRequest struct {
-	ContestName       string    `json:"contest_name"`
-	StartTime         time.Time `json:"start_time"`
-	EndTime           time.Time `json:"end_time"`
-	Duration          int64     `json:"duration"`
-	RegistrationStart time.Time `json:"registration_start"`
-	RegistrationEnd   time.Time `json:"registration_end"`
-	AnnouncementBlog  int64     `json:"announcement_blog"`
-	EditorialBlog     int64     `json:"editorial_blog"`
+	ContestName       string    `json:"contest_name" binding:"required"`
+	StartTime         time.Time `json:"start_time" binding:"required"`
+	EndTime           time.Time `json:"end_time" binding:"required"`
+	Duration          int64     `json:"duration" binding:"required"`
+	RegistrationStart time.Time `json:"registration_start" binding:"required"`
+	RegistrationEnd   time.Time `json:"registration_end" binding:"required"`
+	AnnouncementBlog  int64     `json:"announcement_blog" binding:"required"`
+	EditorialBlog     int64     `json:"editorial_blog" binding:"required"`
 }	
 func (handler *Handler) CreateContest(ctx *gin.Context) {
 	var req createContestRequest
@@ -48,11 +48,7 @@ func (handler *Handler) CreateContest(ctx *gin.Context) {
 		})
 		return
 	}
-	// conditions related to contest timings
-    fmt.Print(req);
-
-
-	arg := db.CreateContestParams{
+	arg := db.CreateContestTxParams{
 		ContestName: req.ContestName,
 		StartTime: req.StartTime,
 		EndTime:  req.EndTime,
@@ -62,19 +58,13 @@ func (handler *Handler) CreateContest(ctx *gin.Context) {
 		AnnouncementBlog: req.AnnouncementBlog,
 		EditorialBlog: req.EditorialBlog,
 	}
-	contest, err := handler.store.CreateContest(ctx, arg)
+	result, err := handler.store.CreateUserTx(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error" : err.Error(),
 		})
 	}
-
-	// // Perform the redirection to the created contest page
-	// contestID := contest.ID
-	// redirectURL := fmt.Sprintf("/contests/%d", contestID)
-	// ctx.Redirect(http.StatusMovedPermanently, redirectURL)
-
-	ctx.JSON(http.StatusOK, contest)
+	ctx.JSON(http.StatusOK, result.Contest)
 	
 }
 type getContestRequest struct {
@@ -138,6 +128,7 @@ func (handler *Handler) ListContests(ctx *gin.Context) {
 		});
 		return
 	}
+	fmt.Println(contests)
 
 	ctx.JSON(http.StatusOK, contests)
 }
