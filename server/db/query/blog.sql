@@ -19,21 +19,15 @@ ORDER BY id
 LIMIT $1
 OFFSET $2;
 
--- name: Updateblog :one
-UPDATE blogs
-  set blog_title = $2,
-  blog_content = $3
-WHERE id = $1
-RETURNING *;
-
 -- name: DeleteBlog :exec
 DELETE FROM blogs
 WHERE id = $1;
 
 -- name: UpdateBlog :one
 UPDATE blogs
-  set blog_title = $2,
-  blog_content = $3,
-  publish_at = $4
-WHERE id = $1
+SET
+  blog_title = COALESCE(sqlc.narg(blog_title), blog_title),
+  blog_content = COALESCE(sqlc.narg(blog_content), blog_content),
+  publish_at = COALESCE(sqlc.narg(publish_at), publish_at)
+WHERE id = sqlc.arg(id)
 RETURNING *;

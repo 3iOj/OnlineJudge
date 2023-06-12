@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"time"
 )
 
@@ -123,56 +124,28 @@ func (q *Queries) ListBlogs(ctx context.Context, arg ListBlogsParams) ([]Blog, e
 
 const updateBlog = `-- name: UpdateBlog :one
 UPDATE blogs
-  set blog_title = $2,
-  blog_content = $3,
-  publish_at = $4
-WHERE id = $1
+SET
+  blog_title = COALESCE($1, blog_title),
+  blog_content = COALESCE($2, blog_content),
+  publish_at = COALESCE($3, publish_at)
+WHERE id = $4
 RETURNING id, blog_title, blog_content, created_by, created_at, publish_at, votes_count
 `
 
 type UpdateBlogParams struct {
-	ID          int64     `json:"id"`
-	BlogTitle   string    `json:"blog_title"`
-	BlogContent string    `json:"blog_content"`
-	PublishAt   time.Time `json:"publish_at"`
+	BlogTitle   sql.NullString `json:"blog_title"`
+	BlogContent sql.NullString `json:"blog_content"`
+	PublishAt   sql.NullTime   `json:"publish_at"`
+	ID          int64          `json:"id"`
 }
 
 func (q *Queries) UpdateBlog(ctx context.Context, arg UpdateBlogParams) (Blog, error) {
 	row := q.db.QueryRowContext(ctx, updateBlog,
-		arg.ID,
 		arg.BlogTitle,
 		arg.BlogContent,
 		arg.PublishAt,
+		arg.ID,
 	)
-	var i Blog
-	err := row.Scan(
-		&i.ID,
-		&i.BlogTitle,
-		&i.BlogContent,
-		&i.CreatedBy,
-		&i.CreatedAt,
-		&i.PublishAt,
-		&i.VotesCount,
-	)
-	return i, err
-}
-
-const updateblog = `-- name: Updateblog :one
-UPDATE blogs
-  set blog_title = $2,
-  blog_content = $3
-WHERE id = $1
-RETURNING id, blog_title, blog_content, created_by, created_at, publish_at, votes_count
-`
-
-type UpdateblogParams struct {
-	ID          int64  `json:"id"`
-	BlogTitle   string `json:"blog_title"`
-	BlogContent string `json:"blog_content"`
-}
-
-func (q *Queries) Updateblog(ctx context.Context, arg UpdateblogParams) (Blog, error) {
-	row := q.db.QueryRowContext(ctx, updateblog, arg.ID, arg.BlogTitle, arg.BlogContent)
 	var i Blog
 	err := row.Scan(
 		&i.ID,
