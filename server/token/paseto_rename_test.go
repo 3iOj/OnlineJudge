@@ -3,8 +3,9 @@ package token
 import (
 	"testing"
 	"time"
+
+	util "github.com/3iOj/OnlineJudge/utils"
 	"github.com/stretchr/testify/require"
-	util "github.com/thewackyindian/3iOj/utils"
 )
 
 func TestPasetoMaker(t *testing.T) {

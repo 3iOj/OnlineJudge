@@ -4,10 +4,10 @@ import (
 	"database/sql"
 	"log"
 
+	"github.com/3iOj/OnlineJudge/api"
+	db "github.com/3iOj/OnlineJudge/db/sqlc"
+	util "github.com/3iOj/OnlineJudge/utils"
 	_ "github.com/lib/pq"
-	"github.com/thewackyindian/3iOj/api"
-	db "github.com/thewackyindian/3iOj/db/sqlc"
-	util "github.com/thewackyindian/3iOj/utils"
 )
 
 

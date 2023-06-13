@@ -6,9 +6,8 @@ import (
 	"os"
 	"testing"
 
-	
+	util "github.com/3iOj/OnlineJudge/utils"
 	_ "github.com/lib/pq"
-	util "github.com/thewackyindian/3iOj/utils"
 )
 
 var testQueries *Queries

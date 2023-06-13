@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
+	util "github.com/3iOj/OnlineJudge/utils"
 	"github.com/stretchr/testify/require"
-	util "github.com/thewackyindian/3iOj/utils"
 )
 func createRandomUser(t *testing.T) User {
 	hashedPassword, err := util.HashPassword(util.RandomString(8));

@@ -11,11 +11,10 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 
-	// "gopkg.in/guregu/null.v4"
-	"github.com/thewackyindian/3iOj/api/middleware"
-	db "github.com/thewackyindian/3iOj/db/sqlc"
-	"github.com/thewackyindian/3iOj/token"
-	util "github.com/thewackyindian/3iOj/utils"
+	"github.com/3iOj/OnlineJudge/api/middleware"
+	db "github.com/3iOj/OnlineJudge/db/sqlc"
+	"github.com/3iOj/OnlineJudge/token"
+	util "github.com/3iOj/OnlineJudge/utils"
 )
 
 type Handler struct {

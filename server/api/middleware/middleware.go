@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/3iOj/OnlineJudge/token"
 	"github.com/gin-gonic/gin"
-	"github.com/thewackyindian/3iOj/token"
 )
 
 const (

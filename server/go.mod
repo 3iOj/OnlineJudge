@@ -1,4 +1,4 @@
-module github.com/thewackyindian/3iOj
+module github.com/3iOj/OnlineJudge
 
 go 1.20
 
