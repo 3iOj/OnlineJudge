@@ -26,15 +26,16 @@ OFFSET $2;
 
 -- name: UpdateProblem :one
 UPDATE Problems
-  set problem_name = $2,
-  description = $3,
-  sample_input = $4,
-  sample_output = $5,
-  ideal_solution = $6,
-  time_limit = $7,
-  memory_limit = $8,
-  code_size = $9,
-  rating = $10
+SET 
+  problem_name = COALESCE(sqlc.narg(problem_name), problem_name),
+  description = COALESCE(sqlc.narg(description), description),
+  sample_input = COALESCE(sqlc.narg(sample_input), sample_input),
+  sample_output = COALESCE(sqlc.narg(sample_output), sample_output),
+  ideal_solution = COALESCE(sqlc.narg(ideal_solution), ideal_solution),
+  time_limit = COALESCE(sqlc.narg(time_limit), time_limit),
+  memory_limit = COALESCE(sqlc.narg(memory_limit), memory_limit),
+  code_size = COALESCE(sqlc.narg(code_size), code_size),
+  rating = COALESCE(sqlc.narg(rating), rating),
 WHERE id = $1
 RETURNING *;
 
