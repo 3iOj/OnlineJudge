@@ -180,6 +180,7 @@ func (handler *Handler) ListUsers(ctx *gin.Context) {
 	for i := 0; i < len(users); i++ {
 		rsp = append(rsp, newUserResponse(users[i]))
 	}
+	//sort
 	ctx.JSON(http.StatusOK, rsp)
 }
 
