@@ -157,7 +157,8 @@ func (q *Queries) ListProblems(ctx context.Context, arg ListProblemsParams) ([]P
 
 const updateProblem = `-- name: UpdateProblem :one
 UPDATE Problems
-  set problem_name = $2,
+SET 
+  problem_name = $2,
   description = $3,
   sample_input = $4,
   sample_output = $5,

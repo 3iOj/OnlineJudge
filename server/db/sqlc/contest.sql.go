@@ -7,67 +7,68 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"time"
 )
 
 const addContestCreators = `-- name: AddContestCreators :one
 INSERT INTO contest_creators (
     contest_id,
-    creator_id
+    creator_name
 ) VALUES (
     $1, $2
-) RETURNING contest_id, creator_id, created_at
+) RETURNING contest_id, creator_name, created_at
 `
 
 type AddContestCreatorsParams struct {
-	ContestID int64 `json:"contest_id"`
-	CreatorID int64 `json:"creator_id"`
+	ContestID   int64  `json:"contest_id"`
+	CreatorName string `json:"creator_name"`
 }
 
 func (q *Queries) AddContestCreators(ctx context.Context, arg AddContestCreatorsParams) (ContestCreator, error) {
-	row := q.db.QueryRowContext(ctx, addContestCreators, arg.ContestID, arg.CreatorID)
+	row := q.db.QueryRowContext(ctx, addContestCreators, arg.ContestID, arg.CreatorName)
 	var i ContestCreator
-	err := row.Scan(&i.ContestID, &i.CreatorID, &i.CreatedAt)
+	err := row.Scan(&i.ContestID, &i.CreatorName, &i.CreatedAt)
+	return i, err
+}
+
+const addParticipant = `-- name: AddParticipant :one
+INSERT INTO contest_registered (
+  contest_id,
+  username
+) VALUES (
+  $1, $2
+) RETURNING contest_id, username, created_at
+`
+
+type AddParticipantParams struct {
+	ContestID int64  `json:"contest_id"`
+	Username  string `json:"username"`
+}
+
+func (q *Queries) AddParticipant(ctx context.Context, arg AddParticipantParams) (ContestRegistered, error) {
+	row := q.db.QueryRowContext(ctx, addParticipant, arg.ContestID, arg.Username)
+	var i ContestRegistered
+	err := row.Scan(&i.ContestID, &i.Username, &i.CreatedAt)
 	return i, err
 }
 
 const createContest = `-- name: CreateContest :one
 INSERT INTO contests (
   contest_name,
-  start_time,
-  end_time,
-  duration,
-  registration_start,
-  registration_end,
-  announcement_blog,
-  editorial_blog
+  duration
 ) VALUES (
-  $1, $2, $3, $4, $5, $6, $7, $8
-) RETURNING id, contest_name, start_time, end_time, duration, registration_start, registration_end, announcement_blog, editorial_blog, created_at, updated_at
+  $1, $2
+) RETURNING id, contest_name, start_time, end_time, duration, registration_start, registration_end, announcement_blog, editorial_blog, created_at, updated_at, ispublish
 `
 
 type CreateContestParams struct {
-	ContestName       string    `json:"contest_name"`
-	StartTime         time.Time `json:"start_time"`
-	EndTime           time.Time `json:"end_time"`
-	Duration          int64     `json:"duration"`
-	RegistrationStart time.Time `json:"registration_start"`
-	RegistrationEnd   time.Time `json:"registration_end"`
-	AnnouncementBlog  int64     `json:"announcement_blog"`
-	EditorialBlog     int64     `json:"editorial_blog"`
+	ContestName string `json:"contest_name"`
+	Duration    int64  `json:"duration"`
 }
 
 func (q *Queries) CreateContest(ctx context.Context, arg CreateContestParams) (Contest, error) {
-	row := q.db.QueryRowContext(ctx, createContest,
-		arg.ContestName,
-		arg.StartTime,
-		arg.EndTime,
-		arg.Duration,
-		arg.RegistrationStart,
-		arg.RegistrationEnd,
-		arg.AnnouncementBlog,
-		arg.EditorialBlog,
-	)
+	row := q.db.QueryRowContext(ctx, createContest, arg.ContestName, arg.Duration)
 	var i Contest
 	err := row.Scan(
 		&i.ID,
@@ -81,6 +82,7 @@ func (q *Queries) CreateContest(ctx context.Context, arg CreateContestParams) (C
 		&i.EditorialBlog,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Ispublish,
 	)
 	return i, err
 }
@@ -95,14 +97,61 @@ func (q *Queries) DeleteContest(ctx context.Context, id int64) error {
 	return err
 }
 
-const getContest = `-- name: GetContest :one
-SELECT id, contest_name, start_time, end_time, duration, registration_start, registration_end, announcement_blog, editorial_blog, created_at, updated_at FROM contests
-WHERE id = $1 LIMIT 1
+const deleteContestCreators = `-- name: DeleteContestCreators :exec
+DELETE FROM contest_creators
+WHERE contest_id = $1
 `
 
-func (q *Queries) GetContest(ctx context.Context, id int64) (Contest, error) {
+func (q *Queries) DeleteContestCreators(ctx context.Context, contestID int64) error {
+	_, err := q.db.ExecContext(ctx, deleteContestCreators, contestID)
+	return err
+}
+
+const deleteParticipant = `-- name: DeleteParticipant :exec
+DELETE FROM contest_registered
+WHERE username = $1
+`
+
+func (q *Queries) DeleteParticipant(ctx context.Context, username string) error {
+	_, err := q.db.ExecContext(ctx, deleteParticipant, username)
+	return err
+}
+
+const getContest = `-- name: GetContest :one
+SELECT c.id, contest_name, start_time, end_time, duration, registration_start, registration_end, announcement_blog, editorial_blog, c.created_at, updated_at, ispublish, p.id, problem_name, description, sample_input, sample_output, ideal_solution, time_limit, memory_limit, code_size, rating, p.created_at, contest_id FROM contests as C INNER JOIN problems as P ON
+C.id = P.contest_id WHERE C.id = $1
+`
+
+type GetContestRow struct {
+	ID                int64         `json:"id"`
+	ContestName       string        `json:"contest_name"`
+	StartTime         sql.NullTime  `json:"start_time"`
+	EndTime           sql.NullTime  `json:"end_time"`
+	Duration          int64         `json:"duration"`
+	RegistrationStart sql.NullTime  `json:"registration_start"`
+	RegistrationEnd   sql.NullTime  `json:"registration_end"`
+	AnnouncementBlog  sql.NullInt64 `json:"announcement_blog"`
+	EditorialBlog     sql.NullInt64 `json:"editorial_blog"`
+	CreatedAt         time.Time     `json:"created_at"`
+	UpdatedAt         sql.NullTime  `json:"updated_at"`
+	Ispublish         sql.NullBool  `json:"ispublish"`
+	ID_2              int64         `json:"id_2"`
+	ProblemName       string        `json:"problem_name"`
+	Description       string        `json:"description"`
+	SampleInput       string        `json:"sample_input"`
+	SampleOutput      string        `json:"sample_output"`
+	IdealSolution     string        `json:"ideal_solution"`
+	TimeLimit         int32         `json:"time_limit"`
+	MemoryLimit       int32         `json:"memory_limit"`
+	CodeSize          int32         `json:"code_size"`
+	Rating            sql.NullInt32 `json:"rating"`
+	CreatedAt_2       time.Time     `json:"created_at_2"`
+	ContestID         int64         `json:"contest_id"`
+}
+
+func (q *Queries) GetContest(ctx context.Context, id int64) (GetContestRow, error) {
 	row := q.db.QueryRowContext(ctx, getContest, id)
-	var i Contest
+	var i GetContestRow
 	err := row.Scan(
 		&i.ID,
 		&i.ContestName,
@@ -115,13 +164,26 @@ func (q *Queries) GetContest(ctx context.Context, id int64) (Contest, error) {
 		&i.EditorialBlog,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Ispublish,
+		&i.ID_2,
+		&i.ProblemName,
+		&i.Description,
+		&i.SampleInput,
+		&i.SampleOutput,
+		&i.IdealSolution,
+		&i.TimeLimit,
+		&i.MemoryLimit,
+		&i.CodeSize,
+		&i.Rating,
+		&i.CreatedAt_2,
+		&i.ContestID,
 	)
 	return i, err
 }
 
 const listContests = `-- name: ListContests :many
-SELECT id, contest_name, start_time, end_time, duration, registration_start, registration_end, announcement_blog, editorial_blog, created_at, updated_at FROM contests
-ORDER BY id
+SELECT id, contest_name, start_time, end_time, duration, registration_start, registration_end, announcement_blog, editorial_blog, created_at, updated_at, ispublish FROM contests
+WHERE ispublish IS TRUE
 LIMIT $1
 OFFSET $2
 `
@@ -152,6 +214,7 @@ func (q *Queries) ListContests(ctx context.Context, arg ListContestsParams) ([]C
 			&i.EditorialBlog,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Ispublish,
 		); err != nil {
 			return nil, err
 		}
@@ -164,4 +227,67 @@ func (q *Queries) ListContests(ctx context.Context, arg ListContestsParams) ([]C
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateContest = `-- name: UpdateContest :one
+UPDATE contests
+SET
+  contest_name = COALESCE($1, contest_name),
+  start_time = COALESCE($2, start_time),
+  end_time = COALESCE($3, end_time),
+  duration = COALESCE($4, duration),
+  registration_start = COALESCE($5, registration_start),
+  registration_end = COALESCE($6, end_time),
+  announcement_blog = COALESCE($7, announcement_blog),
+  editorial_blog = COALESCE($8, editorial_blog),
+  updated_at = COALESCE($9, updated_at),
+  ispublish = COALESCE($10, ispublish)
+WHERE id = $11
+RETURNING id, contest_name, start_time, end_time, duration, registration_start, registration_end, announcement_blog, editorial_blog, created_at, updated_at, ispublish
+`
+
+type UpdateContestParams struct {
+	ContestName       sql.NullString `json:"contest_name"`
+	StartTime         sql.NullTime   `json:"start_time"`
+	EndTime           sql.NullTime   `json:"end_time"`
+	Duration          sql.NullInt64  `json:"duration"`
+	RegistrationStart sql.NullTime   `json:"registration_start"`
+	RegistrationEnd   sql.NullTime   `json:"registration_end"`
+	AnnouncementBlog  sql.NullInt64  `json:"announcement_blog"`
+	EditorialBlog     sql.NullInt64  `json:"editorial_blog"`
+	UpdatedAt         sql.NullTime   `json:"updated_at"`
+	Ispublish         sql.NullBool   `json:"ispublish"`
+	ID                int64          `json:"id"`
+}
+
+func (q *Queries) UpdateContest(ctx context.Context, arg UpdateContestParams) (Contest, error) {
+	row := q.db.QueryRowContext(ctx, updateContest,
+		arg.ContestName,
+		arg.StartTime,
+		arg.EndTime,
+		arg.Duration,
+		arg.RegistrationStart,
+		arg.RegistrationEnd,
+		arg.AnnouncementBlog,
+		arg.EditorialBlog,
+		arg.UpdatedAt,
+		arg.Ispublish,
+		arg.ID,
+	)
+	var i Contest
+	err := row.Scan(
+		&i.ID,
+		&i.ContestName,
+		&i.StartTime,
+		&i.EndTime,
+		&i.Duration,
+		&i.RegistrationStart,
+		&i.RegistrationEnd,
+		&i.AnnouncementBlog,
+		&i.EditorialBlog,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Ispublish,
+	)
+	return i, err
 }

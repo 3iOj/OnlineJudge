@@ -7,9 +7,11 @@ import (
 )
 
 
+//this interface has all queries and transactions
 type Store interface {
 	Querier
-	CreateUserTx(ctx context.Context, arg CreateContestTxParams) (CreateContestTxResponse, error)
+	execTx(ctx context.Context, fn func(*Queries) error) error
+	UpdateContestTx(ctx context.Context, arg UpdateContestTxParams) (UpdateContestTxResponse, error)
 }
 type SQLStore struct { //will talk to real database
 	db *sql.DB

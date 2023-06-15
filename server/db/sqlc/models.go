@@ -29,17 +29,17 @@ type Blog struct {
 }
 
 type BlogComment struct {
-	ID           int64          `json:"id"`
-	BlogID       int64          `json:"blog_id"`
-	Message      sql.NullString `json:"message"`
-	CommentedBy  int64          `json:"commented_by"`
-	ChildComment int64          `json:"child_comment"`
-	CreatedAt    time.Time      `json:"created_at"`
+	ID           int64     `json:"id"`
+	BlogID       int64     `json:"blog_id"`
+	Message      string    `json:"message"`
+	CommentedBy  string    `json:"commented_by"`
+	ChildComment int64     `json:"child_comment"`
+	CreatedAt    time.Time `json:"created_at"`
 }
 
 type BlogLike struct {
 	BlogID    int64     `json:"blog_id"`
-	ActionBy  int64     `json:"action_by"`
+	ActionBy  string    `json:"action_by"`
 	IsLiked   bool      `json:"is_liked"`
 	CreatedAt time.Time `json:"created_at"`
 }
@@ -52,44 +52,45 @@ type BlogTag struct {
 type Community struct {
 	ID             int64     `json:"id"`
 	CommunityName  string    `json:"community_name"`
-	CommunityAdmin int64     `json:"community_admin"`
+	CommunityAdmin string    `json:"community_admin"`
 	CreatedAt      time.Time `json:"created_at"`
 }
 
 type CommunityUser struct {
-	ID          int64 `json:"id"`
-	CommunityID int64 `json:"community_id"`
-	UserID      int64 `json:"user_id"`
+	ID          int64  `json:"id"`
+	CommunityID int64  `json:"community_id"`
+	Username    string `json:"username"`
 }
 
 type Contest struct {
-	ID          int64     `json:"id"`
-	ContestName string    `json:"contest_name"`
-	StartTime   time.Time `json:"start_time"`
+	ID          int64        `json:"id"`
+	ContestName string       `json:"contest_name"`
+	StartTime   sql.NullTime `json:"start_time"`
 	// must be greater than start time
-	EndTime time.Time `json:"end_time"`
+	EndTime sql.NullTime `json:"end_time"`
 	// must be equal to difference between end time and start time
-	Duration          int64     `json:"duration"`
-	RegistrationStart time.Time `json:"registration_start"`
+	Duration          int64        `json:"duration"`
+	RegistrationStart sql.NullTime `json:"registration_start"`
 	// must be greater than registration_start
-	RegistrationEnd time.Time `json:"registration_end"`
+	RegistrationEnd sql.NullTime `json:"registration_end"`
 	// should be created automatically
-	AnnouncementBlog int64 `json:"announcement_blog"`
+	AnnouncementBlog sql.NullInt64 `json:"announcement_blog"`
 	// should be created automatically
-	EditorialBlog int64        `json:"editorial_blog"`
-	CreatedAt     time.Time    `json:"created_at"`
-	UpdatedAt     sql.NullTime `json:"updated_at"`
+	EditorialBlog sql.NullInt64 `json:"editorial_blog"`
+	CreatedAt     time.Time     `json:"created_at"`
+	UpdatedAt     sql.NullTime  `json:"updated_at"`
+	Ispublish     sql.NullBool  `json:"ispublish"`
 }
 
 type ContestCreator struct {
-	ContestID int64     `json:"contest_id"`
-	CreatorID int64     `json:"creator_id"`
-	CreatedAt time.Time `json:"created_at"`
+	ContestID   int64     `json:"contest_id"`
+	CreatorName string    `json:"creator_name"`
+	CreatedAt   time.Time `json:"created_at"`
 }
 
 type ContestRegistered struct {
 	ContestID int64     `json:"contest_id"`
-	UserID    int64     `json:"user_id"`
+	Username  string    `json:"username"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -119,7 +120,7 @@ type Problem struct {
 
 type ProblemCreator struct {
 	ProblemID int64     `json:"problem_id"`
-	CreatedBy int64     `json:"created_by"`
+	CreatedBy string    `json:"created_by"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -128,6 +129,14 @@ type ProblemTest struct {
 	ProblemID int64  `json:"problem_id"`
 	Input     string `json:"input"`
 	Output    string `json:"output"`
+}
+
+type Request struct {
+	Username        string         `json:"username"`
+	AdminName       string         `json:"admin_name"`
+	PermissionAsked sql.NullString `json:"permission_asked"`
+	CurrentStatus   sql.NullString `json:"current_status"`
+	CreatedAt       time.Time      `json:"created_at"`
 }
 
 type Submission struct {
