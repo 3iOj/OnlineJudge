@@ -24,14 +24,16 @@ OFFSET $2;
 
 -- name: UpdateUser :one
 UPDATE users
-  set name = $2,
-  email = $3,
-  password = $4,
-  profileimg = $5,
-  motto = $6,
-  dob = $7,
-  is_setter = $8
-WHERE username = $1
+SET 
+  password = COALESCE(sqlc.narg(password), password),
+  name = COALESCE(sqlc.narg(name), name),
+  email = COALESCE(sqlc.narg(email), email),
+  dob = COALESCE(sqlc.narg(dob), dob),
+  profileimg = COALESCE(sqlc.narg(profileimg), profileimg),
+  motto = COALESCE(sqlc.narg(motto), motto),
+  is_setter = COALESCE(sqlc.narg(is_setter), is_setter)
+WHERE
+  username = sqlc.arg(username)
 RETURNING *;
 
 -- name: DeleteUser :exec
