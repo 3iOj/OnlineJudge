@@ -3,6 +3,7 @@
 
 # Ignore .env files
 .env*
+app.env
 
 # Ignore build artifacts
 /build

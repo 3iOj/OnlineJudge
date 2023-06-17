@@ -2,6 +2,7 @@ package user
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -10,68 +11,97 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 
-	// "gopkg.in/guregu/null.v4"
-	db "github.com/thewackyindian/3iOj/db/sqlc"
-	util "github.com/thewackyindian/3iOj/utils"
+	"github.com/3iOj/OnlineJudge/api/middleware"
+	db "github.com/3iOj/OnlineJudge/db/sqlc"
+	"github.com/3iOj/OnlineJudge/token"
+	util "github.com/3iOj/OnlineJudge/utils"
 )
+
 type Handler struct {
-    // config     util.Config
-    store      db.Store
-    // tokenMaker token.Maker
-	
+	config     util.Config
+	store db.Store
+	tokenMaker token.Maker
+}
+func NewHandler(
+	config util.Config,
+	store db.Store,
+	tokenMaker token.Maker,
+) *Handler {
+	return &Handler{
+		config,store, tokenMaker,
+	}
 }
 
-func NewHandler(
-    // config util.Config,
-    store db.Store,
-    // tokenMaker token.Maker,
-) *Handler {
-    return &Handler{
-         store, 
-    }
+type userResponse struct {
+	Username      string    `json:"username"`
+	Name          string    `json:"name"`
+	Email         string    `json:"email"`
+	Dob           time.Time `json:"dob"`
+	Profileimg    string    `json:"profileimg"`
+	Motto         string    `json:"motto"`
+	Rating        int32     `json:"rating"`
+	ProblemSolved int32     `json:"problem_solved"`
+	AdminID       int64     `json:"admin_id"`
+	IsSetter      bool      `json:"is_setter"`
+	CreatedAt     time.Time `json:"created_at"`
 }
 type createUserRequest struct {
-	Username string `json:"username" binding:"required,alphanum"`
-	Password string `json:"password" binding:"required,min=8"`
-	Name     string `json:"name" binding:"required"`
-	Email    string `json:"email" binding:"required,email"`
-	Dob      time.Time  `json:"dob" binding:"required"`		
-	Profileimg string `json:"profileimg"`
-	Motto      string `json:"motto"`
-	IsSetter   bool   `json:"is_setter"`
+	Username   string    `json:"username" binding:"required,alphanum"`
+	Password   string    `json:"password" binding:"required,min=8"`
+	Name       string    `json:"name" binding:"required"`
+	Email      string    `json:"email" binding:"required,email"`
+	Dob        time.Time `json:"dob" binding:"required"`
+	Profileimg string    `json:"profileimg"`
+	Motto      string    `json:"motto"`
+	IsSetter   bool      `json:"is_setter"`
 }
 
+func newUserResponse(user db.User) userResponse {
+	return userResponse{
+		Username:      user.Username,
+		Name:          user.Name,
+		Email:         user.Email,
+		Dob:           user.Dob,
+		Profileimg:    user.Profileimg.String,
+		Motto:         user.Motto.String,
+		Rating:        user.Rating.Int32,
+		ProblemSolved: user.ProblemSolved.Int32,
+		AdminID:       user.AdminID.Int64,
+		IsSetter:      user.IsSetter,
+		CreatedAt:     user.CreatedAt,
+	}
+}
 func (handler *Handler) CreateUser(ctx *gin.Context) {
 	var req createUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-				"error" : err.Error(),
-		});
-		
+			"error": err.Error(),
+		})
+
 		return
 	}
-	
+
 	hashedPassword, err := util.HashPassword(req.Password)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
-				"error" : err.Error(),
-		});
+			"error": err.Error(),
+		})
 		return
 	}
 	arg := db.CreateUserParams{
-		Name:     req.Name,
-		Username: req.Username,
-		Email:    req.Email,
-		Password: hashedPassword,
-		Dob:      req.Dob,
-		Profileimg : sql.NullString{String: req.Profileimg, Valid: true},
-		Motto: sql.NullString{String: req.Motto, Valid: true},
+		Name:       req.Name,
+		Username:   req.Username,
+		Email:      req.Email,
+		Password:   hashedPassword,
+		Dob:        req.Dob,
+		Profileimg: sql.NullString{String: req.Profileimg, Valid: true},
+		Motto:      sql.NullString{String: req.Motto, Valid: true},
 	}
 	user, err := handler.store.CreateUser(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
-				"error" : err.Error(),
-		});
+			"error": err.Error(),
+		})
 	}
 	// if pqErr, ok := err.(*pq.Error); ok {
 	// 	switch pqErr.Code.Name() {
@@ -80,10 +110,9 @@ func (handler *Handler) CreateUser(ctx *gin.Context) {
 	// 		return
 	// 	}
 	// }
-	ctx.JSON(http.StatusOK, user)
+	rsp := newUserResponse(user)
+	ctx.JSON(http.StatusOK, rsp)
 }
-
-
 
 type getUserRequest struct {
 	Username string `uri:"username" binding:"required,alphanum"`
@@ -99,20 +128,19 @@ func (handler *Handler) GetUser(ctx *gin.Context) {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, gin.H{
-				"error" : err.Error(),
-		});
+				"error": err.Error(),
+			})
 			return
 		}
-		ctx.JSON(http.StatusInternalServerError,gin.H{
-				"error" : err.Error(),
-		});
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
 		return
 	}
-
-	ctx.JSON(http.StatusOK, user)
+	rsp := newUserResponse(user)
+	ctx.JSON(http.StatusOK, rsp)
 }
 
-// binding logic here ?...
 type listUsersRequest struct {
 	PageID   int32 `form:"page_id"`
 	PageSize int32 `form:"page_size"`
@@ -122,8 +150,8 @@ func (handler *Handler) ListUsers(ctx *gin.Context) {
 	var req listUsersRequest
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-				"error" : err.Error(),
-		});
+			"error": err.Error(),
+		})
 		return
 	}
 	fmt.Println(req.PageID, req.PageSize)
@@ -138,17 +166,157 @@ func (handler *Handler) ListUsers(ctx *gin.Context) {
 		Offset: (req.PageID - 1) * req.PageSize,
 	}
 
-	accounts, err := handler.store.ListUsers(ctx, arg)
+	users, err := handler.store.ListUsers(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
-				"error" : err.Error(),
-		});
+			"error": err.Error(),
+		})
 		return
 	}
-
-	ctx.JSON(http.StatusOK, accounts)
+	rsp := []userResponse{}
+	/*
+		binding all users to response style
+	*/
+	for i := 0; i < len(users); i++ {
+		rsp = append(rsp, newUserResponse(users[i]))
+	}
+	//sort
+	ctx.JSON(http.StatusOK, rsp)
 }
 
 
+
+type loginUserRequest struct {
+	Username   string    `json:"username" binding:"required,alphanum"`
+	Password   string    `json:"password" binding:"required,min=8"`
+}
+
+type loginUserResponse struct {
+	AccessToken           string       `json:"access_token"`
+	User                  userResponse `json:"user"`
+}
+
+
+
+func (handler *Handler) LoginUser(ctx *gin.Context) {
+	var req loginUserRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest,  gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	user, err := handler.store.GetUser(ctx, req.Username)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound,  gin.H{
+			"error": err.Error(),
+			})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError,  gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	err = util.CheckPassword(req.Password, user.Password)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	accessToken, payload,err := handler.tokenMaker.CreateToken(
+		user.Username,
+		handler.config.AccessTokenDuration,
+	)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	fmt.Print(payload)
+
+	rsp := loginUserResponse{
+		AccessToken:           accessToken,
+		User:                  newUserResponse(user),
+	}
+	ctx.JSON(http.StatusOK, rsp)
+}
+
+type updateUser struct {
+	Username string `uri:"username" binding:"required,alphanum"`
+}
+type updateUserRequest struct {
+    Password   string `json:"password"`
+    Name       string `json:"name"`
+    Email      string `json:"email"`
+    Dob        time.Time `json:"dob"`
+    Profileimg string `json:"profileimg"`
+    Motto      string `json:"motto"`
+    IsSetter   bool   `json:"is_setter"`
+}
+
+func (handler *Handler) UpdateUser(ctx *gin.Context) {
+	var user updateUser
+	var req updateUserRequest
+
+	if err := ctx.ShouldBindUri(&user); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	authPayload := ctx.MustGet(middleware.AuthorizationPayloadKey).(*token.Payload)
+	if authPayload.Username != user.Username {
+		err := errors.New("account doesn't belong to the authenticated user")
+		ctx.JSON(http.StatusUnauthorized,gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	hashedUpdatedPassword, err := util.HashPassword(req.Password)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	arg := db.UpdateUserParams{
+		Name:     sql.NullString{String: req.Name, Valid:true},
+		Username: user.Username,
+		Email:    sql.NullString{String: req.Email, Valid:true},
+		Password: sql.NullString{
+			String: hashedUpdatedPassword,
+			Valid:  true,
+		},
+		Dob:        sql.NullTime{Time: req.Dob, Valid:true},
+		Profileimg: sql.NullString{String: req.Profileimg, Valid: true},
+		Motto:      sql.NullString{String: req.Motto, Valid: true},
+	}
+
+	updatedUser, err := handler.store.UpdateUser(ctx, arg)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	rsp := newUserResponse(updatedUser)
+	ctx.JSON(http.StatusOK, rsp)
+}
 
 

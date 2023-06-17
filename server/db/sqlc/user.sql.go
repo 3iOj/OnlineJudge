@@ -151,38 +151,40 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, e
 
 const updateUser = `-- name: UpdateUser :one
 UPDATE users
-  set name = $2,
-  email = $3,
-  password = $4,
-  profileimg = $5,
-  motto = $6,
-  dob = $7,
-  is_setter = $8
-WHERE username = $1
+SET 
+  password = COALESCE($1, password),
+  name = COALESCE($2, name),
+  email = COALESCE($3, email),
+  dob = COALESCE($4, dob),
+  profileimg = COALESCE($5, profileimg),
+  motto = COALESCE($6, motto),
+  is_setter = COALESCE($7, is_setter)
+WHERE
+  username = $8
 RETURNING id, name, username, email, password, profileimg, motto, created_at, dob, rating, problem_solved, admin_id, is_setter
 `
 
 type UpdateUserParams struct {
-	Username   string         `json:"username"`
-	Name       string         `json:"name"`
-	Email      string         `json:"email"`
-	Password   string         `json:"password"`
+	Password   sql.NullString `json:"password"`
+	Name       sql.NullString `json:"name"`
+	Email      sql.NullString `json:"email"`
+	Dob        sql.NullTime   `json:"dob"`
 	Profileimg sql.NullString `json:"profileimg"`
 	Motto      sql.NullString `json:"motto"`
-	Dob        time.Time      `json:"dob"`
-	IsSetter   bool           `json:"is_setter"`
+	IsSetter   sql.NullBool   `json:"is_setter"`
+	Username   string         `json:"username"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
 	row := q.db.QueryRowContext(ctx, updateUser,
-		arg.Username,
+		arg.Password,
 		arg.Name,
 		arg.Email,
-		arg.Password,
+		arg.Dob,
 		arg.Profileimg,
 		arg.Motto,
-		arg.Dob,
 		arg.IsSetter,
+		arg.Username,
 	)
 	var i User
 	err := row.Scan(

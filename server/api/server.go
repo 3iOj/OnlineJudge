@@ -1,55 +1,105 @@
 package api
 
 import (
-	"github.com/gin-gonic/gin"
-	user "github.com/thewackyindian/3iOj/api/users"
-	contest "github.com/thewackyindian/3iOj/api/contests"
+	"fmt"
 
-	db "github.com/thewackyindian/3iOj/db/sqlc"
+	"github.com/3iOj/OnlineJudge/api/admin"
+	blog "github.com/3iOj/OnlineJudge/api/blogs"
+	// "github.com/3iOj/OnlineJudge/api/admin"
+	contest "github.com/3iOj/OnlineJudge/api/contests"
+	"github.com/3iOj/OnlineJudge/api/middleware"
+	user "github.com/3iOj/OnlineJudge/api/users"
+	db "github.com/3iOj/OnlineJudge/db/sqlc"
+	"github.com/3iOj/OnlineJudge/token"
+	util "github.com/3iOj/OnlineJudge/utils"
+	"github.com/gin-gonic/gin"
 )
 
-//here we implement our HTTP API server
+// here we implement our HTTP API server
 type Server struct {
-	store db.Store
-	router *gin.Engine
+	config     util.Config
+	store      db.Store
+	router     *gin.Engine
+	tokenMaker token.Maker
 }
 
-func NewServer(store db.Store) *Server{
-	server := &Server{store: store}
+func NewServer(config util.Config, store db.Store) (*Server, error) {
+	tokenMaker, err := token.NewPasetoMaker(config.TokenSymmetricKey)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create token maker : %w", err) //%w format specifier for original error
+	}
+	server := &Server{
+		store:      store,
+		config:     config,
+		tokenMaker: tokenMaker,
+	}
 	router := gin.Default()
 
+	authRoutes := router.Group("/").Use(middleware.AuthMiddleware(server.tokenMaker))
+	adminHandler := admin.NewHandler(
+		server.config,
+		server.store,
+		server.tokenMaker,
+	)
+	authRoutes.POST("/admin/register", adminHandler.CreateAdmin)
     userHandler := user.NewHandler(
-        // server.config,
-        server.store,
-        // server.tokenMaker,
-		
-    )
+		server.config,
+		server.store,
+		server.tokenMaker,
+	)
+	
+	router.POST("/users/register", userHandler.CreateUser)
+    router.POST("/users/login", userHandler.LoginUser)
+    // router.GET("/users", userHandler.ListUsers)
+    router.GET("/users/:username", userHandler.GetUser)//profile page
+	
+	
+    
+	// authRoutes.POST("/admin/register", adminHandler.CreateAdmin)
+	authRoutes.PUT("/users/:username/", userHandler.UpdateUser)
+	
+	
+	
+    contestHandler := contest.NewHandler(
+		server.config,
+		server.store,
+		server.tokenMaker,
+	)
+	
+	router.GET("/contests/:username",contestHandler.GetContest)
+	router.GET("/contests", contestHandler.ListContests)
+	authRoutes.POST("/contests/create", contestHandler.CreateContest)
+	authRoutes.GET("/contest/:id", contestHandler.GetContest)
+	authRoutes.PUT("/contests/edit/:id", contestHandler.UpdateContest)
 
-    router.POST("/users", userHandler.CreateUser)
-	router.GET("/users", userHandler.ListUsers)
-	router.GET("/users/:username", userHandler.GetUser)
+	blogHandler := blog.NewHandler(
+		server.config,
+		server.store,
+		server.tokenMaker,
+	)
 
+	authRoutes.POST("/blogs", blogHandler.CreateBlog)
+	router.GET("/blogs", blogHandler.ListBlogs)
+	authRoutes.GET("/blogs/:id", blogHandler.GetBlog)
+	// router.PUT("/blogs/:id",blogHandler.Updateblog)
 
-	contestHandler := contest.NewHandler(
-        // server.config,
-        server.store,
-        // server.tokenMaker,
-		
-    )
-
-    router.POST("/contest", contestHandler.CreateContest)
 	server.router = router
 
-	return server
+	return server, err
 }
 
 
-func (server *Server) Start(address string) error{
-	return server.router.Run(address) 
-}
+// func(server *Server)  setupRouter() {
 
-// func errorResponse(err error) gin.H{
-// 	return gin.H{
-// 		"error" : err.Error(),
-// 	}
 // }
+
+
+func (server *Server) Start(address string) error {
+	return server.router.Run(address)
+}
+
+func ErrorResponse(err error) gin.H{
+	return gin.H{
+		"error" : err.Error(),
+	}
+}

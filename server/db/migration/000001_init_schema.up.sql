@@ -1,5 +1,5 @@
 CREATE TABLE "admin" (
-  "id" bigserial PRIMARY KEY,
+  "id" BIGSERIAL PRIMARY KEY,
   "name" varchar(255) NOT NULL,
   "username" varchar(100) UNIQUE NOT NULL,
   "email" varchar(255) UNIQUE NOT NULL,
@@ -7,8 +7,17 @@ CREATE TABLE "admin" (
   "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 
+CREATE TABLE "requests" (
+  "username" varchar(100),
+  "admin_name" varchar(100),
+  "permission_asked" varchar(100),
+  "current_status" varchar(100),
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  PRIMARY KEY ("username", "admin_name")
+);
+
 CREATE TABLE "users" (
-  "id" bigserial PRIMARY KEY,
+  "id" BIGSERIAL PRIMARY KEY,
   "name" varchar(255) NOT NULL,
   "username" varchar(100) UNIQUE NOT NULL,
   "email" varchar(255) UNIQUE NOT NULL,
@@ -24,7 +33,7 @@ CREATE TABLE "users" (
 );
 
 CREATE TABLE "problems" (
-  "id" bigserial PRIMARY KEY,
+  "id" BIGSERIAL PRIMARY KEY,
   "problem_name" varchar(255) NOT NULL,
   "description" text NOT NULL,
   "sample_input" text NOT NULL,
@@ -47,7 +56,7 @@ CREATE TABLE "problem_tests" (
 
 CREATE TABLE "problem_creators" (
   "problem_id" bigint,
-  "created_by" bigint,
+  "created_by" varchar(100),
   "created_at" timestamptz NOT NULL DEFAULT (now()),
   PRIMARY KEY ("problem_id", "created_by")
 );
@@ -59,11 +68,12 @@ CREATE TABLE "prob_tags" (
 );
 
 CREATE TABLE "blogs" (
-  "id" bigserial PRIMARY KEY,
+  "id" BIGSERIAL PRIMARY KEY,
   "blog_title" text NOT NULL,
   "blog_content" text NOT NULL,
-  "created_by" bigint NOT NULL,
+  "created_by" varchar(100) NOT NULL,
   "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "publish_at" timestamptz NOT NULL DEFAULT (now()),
   "votes_count" integer
 );
 
@@ -73,53 +83,47 @@ CREATE TABLE "blog_tags" (
   PRIMARY KEY ("blog_id", "tag")
 );
 
-CREATE TABLE "blog_creators" (
-  "blog_id" bigint,
-  "created_by" bigint,
-  "created_at" timestamptz NOT NULL DEFAULT (now()),
-  PRIMARY KEY ("blog_id", "created_by")
-);
-
 CREATE TABLE "blog_comments" (
-  "id" bigserial PRIMARY KEY,
+  "id" BIGSERIAL PRIMARY KEY,
   "blog_id" bigint NOT NULL,
-  "message" text,
-  "commented_by" bigint NOT NULL,
+  "message" text NOT NULL,
+  "commented_by" varchar(100) NOT NULL,
   "child_comment" bigint NOT NULL,
   "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "blog_likes" (
   "blog_id" bigint,
-  "action_by" bigint,
+  "action_by" varchar(100),
   "is_liked" boolean NOT NULL DEFAULT false,
   "created_at" timestamptz NOT NULL DEFAULT (now()),
   PRIMARY KEY ("blog_id", "action_by")
 );
 
 CREATE TABLE "contests" (
-  "id" bigserial PRIMARY KEY,
+  "id" BIGSERIAL PRIMARY KEY,
   "contest_name" text NOT NULL,
-  "start_time" timestamptz NOT NULL,
-  "end_time" timestamptz NOT NULL,
-  "duration" interval NOT NULL,
-  "registration_start" timestamptz NOT NULL,
-  "registration_end" timestamptz NOT NULL,
-  "announcement_blog" bigint NOT NULL,
-  "editorial_blog" bigint NOT NULL,
+  "start_time" timestamptz,
+  "end_time" timestamptz,
+  "duration" bigint NOT NULL,
+  "registration_start" timestamptz,
+  "registration_end" timestamptz,
+  "announcement_blog" bigint,
+  "editorial_blog" bigint,
   "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "updated_at" timestamptz
+  "updated_at" timestamptz,
+  "ispublish"  boolean DEFAULT false
 );
 
 CREATE TABLE "contest_creators" (
   "contest_id" bigint,
-  "creator_id" bigint,
+  "creator_name" varchar(255),
   "created_at" timestamptz NOT NULL DEFAULT (now()),
-  PRIMARY KEY ("contest_id", "creator_id")
+  PRIMARY KEY ("contest_id", "creator_name")
 );
 
 CREATE TABLE "submissions" (
-  "id" bigserial PRIMARY KEY,
+  "id" BIGSERIAL PRIMARY KEY,
   "submitted_at" timestamptz NOT NULL DEFAULT (now()),
   "problem_id" bigint NOT NULL,
   "username" varchar(100) NOT NULL,
@@ -135,9 +139,9 @@ CREATE TABLE "submissions" (
 
 CREATE TABLE "contest_registered" (
   "contest_id" bigint,
-  "user_id" bigint,
+  "username" varchar(100),
   "created_at" timestamptz NOT NULL DEFAULT (now()),
-  PRIMARY KEY ("contest_id", "user_id")
+  PRIMARY KEY ("contest_id", "username")
 );
 
 CREATE TABLE "submission_tests" (
@@ -148,16 +152,16 @@ CREATE TABLE "submission_tests" (
 );
 
 CREATE TABLE "community" (
-  "id" bigserial PRIMARY KEY,
+  "id" BIGSERIAL PRIMARY KEY,
   "community_name" varchar(255) NOT NULL,
-  "community_admin" bigint NOT NULL,
+  "community_admin" varchar(100) NOT NULL,
   "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "community_users" (
   "id" bigint PRIMARY KEY,
   "community_id" bigint NOT NULL,
-  "user_id" bigint NOT NULL
+  "username" varchar(100) NOT NULL
 );
 
 CREATE INDEX ON "problems" ("problem_name");
@@ -206,11 +210,11 @@ ALTER TABLE "users" ADD FOREIGN KEY ("admin_id") REFERENCES "admin" ("id");
 
 ALTER TABLE "problems" ADD FOREIGN KEY ("contest_id") REFERENCES "contests" ("id");
 
-ALTER TABLE "blogs" ADD FOREIGN KEY ("created_by") REFERENCES "users" ("id");
+ALTER TABLE "blogs" ADD FOREIGN KEY ("created_by") REFERENCES "users" ("username");
 
 ALTER TABLE "blog_comments" ADD FOREIGN KEY ("blog_id") REFERENCES "blogs" ("id");
 
-ALTER TABLE "blog_comments" ADD FOREIGN KEY ("commented_by") REFERENCES "users" ("id");
+ALTER TABLE "blog_comments" ADD FOREIGN KEY ("commented_by") REFERENCES "users" ("username");
 
 ALTER TABLE "blog_comments" ADD FOREIGN KEY ("child_comment") REFERENCES "blog_comments" ("id");
 
@@ -226,11 +230,11 @@ ALTER TABLE "submissions" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
 
 ALTER TABLE "submissions" ADD FOREIGN KEY ("contest_id") REFERENCES "contests" ("id");
 
-ALTER TABLE "community" ADD FOREIGN KEY ("community_admin") REFERENCES "users" ("id");
+ALTER TABLE "community" ADD FOREIGN KEY ("community_admin") REFERENCES "users" ("username");
 
 ALTER TABLE "community_users" ADD FOREIGN KEY ("community_id") REFERENCES "community" ("id");
 
-ALTER TABLE "community_users" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
+ALTER TABLE "community_users" ADD FOREIGN KEY ("username") REFERENCES "users" ("username");
 
 ALTER TABLE "prob_tags" ADD FOREIGN KEY ("problem_id") REFERENCES "problems" ("id");
 
@@ -238,19 +242,15 @@ ALTER TABLE "blog_tags" ADD FOREIGN KEY ("blog_id") REFERENCES "blogs" ("id");
 
 ALTER TABLE "blog_likes" ADD FOREIGN KEY ("blog_id") REFERENCES "blogs" ("id");
 
-ALTER TABLE "blog_likes" ADD FOREIGN KEY ("action_by") REFERENCES "users" ("id");
+ALTER TABLE "blog_likes" ADD FOREIGN KEY ("action_by") REFERENCES "users" ("username");
 
 ALTER TABLE "contest_creators" ADD FOREIGN KEY ("contest_id") REFERENCES "contests" ("id");
 
-ALTER TABLE "contest_creators" ADD FOREIGN KEY ("creator_id") REFERENCES "users" ("id");
-
-ALTER TABLE "blog_creators" ADD FOREIGN KEY ("blog_id") REFERENCES "blogs" ("id");
-
-ALTER TABLE "blog_creators" ADD FOREIGN KEY ("created_by") REFERENCES "users" ("id");
+ALTER TABLE "contest_creators" ADD FOREIGN KEY ("creator_name") REFERENCES "users" ("username");
 
 ALTER TABLE "problem_creators" ADD FOREIGN KEY ("problem_id") REFERENCES "problems" ("id");
 
-ALTER TABLE "problem_creators" ADD FOREIGN KEY ("created_by") REFERENCES "users" ("id");
+ALTER TABLE "problem_creators" ADD FOREIGN KEY ("created_by") REFERENCES "users" ("username");
 
 ALTER TABLE "problem_tests" ADD FOREIGN KEY ("problem_id") REFERENCES "problems" ("id");
 
@@ -258,4 +258,8 @@ ALTER TABLE "submission_tests" ADD FOREIGN KEY ("submission_id") REFERENCES "sub
 
 ALTER TABLE "contest_registered" ADD FOREIGN KEY ("contest_id") REFERENCES "contests" ("id");
 
-ALTER TABLE "contest_registered" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
+ALTER TABLE "contest_registered" ADD FOREIGN KEY ("username") REFERENCES "users" ("username");
+
+ALTER TABLE "requests" ADD FOREIGN KEY ("username") REFERENCES "users" ("username");
+
+ALTER TABLE "requests" ADD FOREIGN KEY ("admin_name") REFERENCES "admin" ("username");
