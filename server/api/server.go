@@ -5,7 +5,7 @@ import (
 
 	"github.com/3iOj/OnlineJudge/api/admin"
 	blog "github.com/3iOj/OnlineJudge/api/blogs"
-	// "github.com/3iOj/OnlineJudge/api/admin"
+	problem "github.com/3iOj/OnlineJudge/api/problems"
 	contest "github.com/3iOj/OnlineJudge/api/contests"
 	"github.com/3iOj/OnlineJudge/api/middleware"
 	user "github.com/3iOj/OnlineJudge/api/users"
@@ -33,7 +33,14 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 		config:     config,
 		tokenMaker: tokenMaker,
 	}
-	router := gin.Default()
+	
+	server.setupRouter()
+	return server, err
+}
+
+
+func(server *Server)  setupRouter() {
+router := gin.Default()
 
 	authRoutes := router.Group("/").Use(middleware.AuthMiddleware(server.tokenMaker))
 	adminHandler := admin.NewHandler(
@@ -80,18 +87,22 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 
 	authRoutes.POST("/blogs", blogHandler.CreateBlog)
 	router.GET("/blogs", blogHandler.ListBlogs)
-	authRoutes.GET("/blogs/:id", blogHandler.GetBlog)
-	// router.PUT("/blogs/:id",blogHandler.Updateblog)
+	router.GET("/blogs/:id", blogHandler.GetBlog)
+	authRoutes.PUT("/blogs/:id",blogHandler.UpdateBlog)
 
+	
+
+	problemHandler := problem.NewHandler(
+		server.config,
+		server.store,
+		server.tokenMaker,
+	)
+	authRoutes.POST("/problems", problemHandler.CreateProblem)
+	router.GET("/problems", problemHandler.ListProblems)
+	router.GET("/problems/:id", problemHandler.GetProblem)
+	authRoutes.PUT("/problems/:id",problemHandler.UpdateProblem)
 	server.router = router
-
-	return server, err
 }
-
-
-// func(server *Server)  setupRouter() {
-
-// }
 
 
 func (server *Server) Start(address string) error {

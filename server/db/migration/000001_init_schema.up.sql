@@ -36,12 +36,12 @@ CREATE TABLE "problems" (
   "id" BIGSERIAL PRIMARY KEY,
   "problem_name" varchar(255) NOT NULL,
   "description" text NOT NULL,
-  "sample_input" text NOT NULL,
-  "sample_output" text NOT NULL,
-  "ideal_solution" text NOT NULL,
-  "time_limit" integer NOT NULL,
-  "memory_limit" integer NOT NULL,
-  "code_size" integer NOT NULL,
+  "sample_input" text ,
+  "sample_output" text ,
+  "ideal_solution" text ,
+  "time_limit" integer,
+  "memory_limit" integer ,
+  "code_size" integer ,
   "rating" integer,
   "created_at" timestamptz NOT NULL DEFAULT (now()),
   "contest_id" bigint NOT NULL
@@ -73,7 +73,7 @@ CREATE TABLE "blogs" (
   "blog_content" text NOT NULL,
   "created_by" varchar(100) NOT NULL,
   "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "publish_at" timestamptz NOT NULL DEFAULT (now()),
+  "ispublish"  boolean DEFAULT false,
   "votes_count" integer
 );
 

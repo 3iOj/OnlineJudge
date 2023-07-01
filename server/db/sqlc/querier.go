@@ -26,6 +26,7 @@ type Querier interface {
 	GetAdmin(ctx context.Context, username string) (Admin, error)
 	GetBlog(ctx context.Context, id int64) (Blog, error)
 	GetContest(ctx context.Context, id int64) (GetContestRow, error)
+	GetContestCreators(ctx context.Context, contestID int64) ([]string, error)
 	GetProblem(ctx context.Context, id int64) (Problem, error)
 	GetUser(ctx context.Context, username string) (User, error)
 	ListAdmins(ctx context.Context, arg ListAdminsParams) ([]Admin, error)

@@ -158,30 +158,30 @@ func (q *Queries) ListProblems(ctx context.Context, arg ListProblemsParams) ([]P
 const updateProblem = `-- name: UpdateProblem :one
 UPDATE Problems
 SET 
-  problem_name = $2,
-  description = $3,
-  sample_input = $4,
-  sample_output = $5,
-  ideal_solution = $6,
-  time_limit = $7,
-  memory_limit = $8,
-  code_size = $9,
-  rating = $10
+  problem_name = COALESCE($2, problem_name),
+  description = COALESCE($3, description),
+  sample_input = COALESCE($4, sample_input),
+  sample_output = COALESCE($5, sample_output),
+  ideal_solution = COALESCE($6, ideal_solution),
+  time_limit = COALESCE($7, time_limit),
+  memory_limit = COALESCE($8, memory_limit),
+  code_size = COALESCE($9, code_size),
+  rating = COALESCE($10, rating)
 WHERE id = $1
 RETURNING id, problem_name, description, sample_input, sample_output, ideal_solution, time_limit, memory_limit, code_size, rating, created_at, contest_id
 `
 
 type UpdateProblemParams struct {
-	ID            int64         `json:"id"`
-	ProblemName   string        `json:"problem_name"`
-	Description   string        `json:"description"`
-	SampleInput   string        `json:"sample_input"`
-	SampleOutput  string        `json:"sample_output"`
-	IdealSolution string        `json:"ideal_solution"`
-	TimeLimit     int32         `json:"time_limit"`
-	MemoryLimit   int32         `json:"memory_limit"`
-	CodeSize      int32         `json:"code_size"`
-	Rating        sql.NullInt32 `json:"rating"`
+	ID            int64          `json:"id"`
+	ProblemName   sql.NullString `json:"problem_name"`
+	Description   sql.NullString `json:"description"`
+	SampleInput   sql.NullString `json:"sample_input"`
+	SampleOutput  sql.NullString `json:"sample_output"`
+	IdealSolution sql.NullString `json:"ideal_solution"`
+	TimeLimit     sql.NullInt32  `json:"time_limit"`
+	MemoryLimit   sql.NullInt32  `json:"memory_limit"`
+	CodeSize      sql.NullInt32  `json:"code_size"`
+	Rating        sql.NullInt32  `json:"rating"`
 }
 
 func (q *Queries) UpdateProblem(ctx context.Context, arg UpdateProblemParams) (Problem, error) {
