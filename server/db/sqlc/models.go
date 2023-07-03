@@ -24,7 +24,7 @@ type Blog struct {
 	BlogContent string        `json:"blog_content"`
 	CreatedBy   string        `json:"created_by"`
 	CreatedAt   time.Time     `json:"created_at"`
-	PublishAt   time.Time     `json:"publish_at"`
+	Ispublish   sql.NullBool  `json:"ispublish"`
 	VotesCount  sql.NullInt32 `json:"votes_count"`
 }
 

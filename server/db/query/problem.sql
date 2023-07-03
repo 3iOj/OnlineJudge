@@ -35,7 +35,7 @@ SET
   time_limit = COALESCE(sqlc.narg(time_limit), time_limit),
   memory_limit = COALESCE(sqlc.narg(memory_limit), memory_limit),
   code_size = COALESCE(sqlc.narg(code_size), code_size),
-  rating = COALESCE(sqlc.narg(rating), rating),
+  rating = COALESCE(sqlc.narg(rating), rating)
 WHERE id = $1
 RETURNING *;
 

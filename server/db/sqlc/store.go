@@ -11,7 +11,7 @@ import (
 type Store interface {
 	Querier
 	execTx(ctx context.Context, fn func(*Queries) error) error
-	UpdateContestTx(ctx context.Context, arg UpdateContestTxParams) (UpdateContestTxResponse, error)
+	// UpdateContestTx(ctx context.Context, arg UpdateContestTxParams) (UpdateContestTxResponse, error)
 }
 type SQLStore struct { //will talk to real database
 	db *sql.DB

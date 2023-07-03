@@ -19,6 +19,11 @@ INSERT INTO contest_creators (
     $1, $2
 ) RETURNING *;
 
+-- name: GetContestCreators :many
+SELECt creator_name FROM contest_creators
+WHERE contest_id = $1;
+
+
 -- name: DeleteContestCreators :exec
 DELETE FROM contest_creators
 WHERE contest_id = $1;

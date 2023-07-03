@@ -181,6 +181,34 @@ func (q *Queries) GetContest(ctx context.Context, id int64) (GetContestRow, erro
 	return i, err
 }
 
+const getContestCreators = `-- name: GetContestCreators :many
+SELECt creator_name FROM contest_creators
+WHERE contest_id = $1
+`
+
+func (q *Queries) GetContestCreators(ctx context.Context, contestID int64) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, getContestCreators, contestID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []string{}
+	for rows.Next() {
+		var creator_name string
+		if err := rows.Scan(&creator_name); err != nil {
+			return nil, err
+		}
+		items = append(items, creator_name)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listContests = `-- name: ListContests :many
 SELECT id, contest_name, start_time, end_time, duration, registration_start, registration_end, announcement_blog, editorial_blog, created_at, updated_at, ispublish FROM contests
 WHERE ispublish IS TRUE

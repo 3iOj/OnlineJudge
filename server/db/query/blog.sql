@@ -3,7 +3,7 @@ INSERT INTO blogs (
   blog_title,
   blog_content,
   created_by,
-  publish_at
+  ispublish
 ) VALUES (
   $1, $2, $3, $4
 ) RETURNING *;
@@ -28,6 +28,6 @@ UPDATE blogs
 SET
   blog_title = COALESCE(sqlc.narg(blog_title), blog_title),
   blog_content = COALESCE(sqlc.narg(blog_content), blog_content),
-  publish_at = COALESCE(sqlc.narg(publish_at), publish_at)
+  ispublish = COALESCE(sqlc.narg(ispublish), ispublish)
 WHERE id = sqlc.arg(id)
 RETURNING *;

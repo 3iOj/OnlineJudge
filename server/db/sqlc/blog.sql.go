@@ -8,7 +8,6 @@ package db
 import (
 	"context"
 	"database/sql"
-	"time"
 )
 
 const createBlog = `-- name: CreateBlog :one
@@ -16,17 +15,17 @@ INSERT INTO blogs (
   blog_title,
   blog_content,
   created_by,
-  publish_at
+  ispublish
 ) VALUES (
   $1, $2, $3, $4
-) RETURNING id, blog_title, blog_content, created_by, created_at, publish_at, votes_count
+) RETURNING id, blog_title, blog_content, created_by, created_at, ispublish, votes_count
 `
 
 type CreateBlogParams struct {
-	BlogTitle   string    `json:"blog_title"`
-	BlogContent string    `json:"blog_content"`
-	CreatedBy   string    `json:"created_by"`
-	PublishAt   time.Time `json:"publish_at"`
+	BlogTitle   string       `json:"blog_title"`
+	BlogContent string       `json:"blog_content"`
+	CreatedBy   string       `json:"created_by"`
+	Ispublish   sql.NullBool `json:"ispublish"`
 }
 
 func (q *Queries) CreateBlog(ctx context.Context, arg CreateBlogParams) (Blog, error) {
@@ -34,7 +33,7 @@ func (q *Queries) CreateBlog(ctx context.Context, arg CreateBlogParams) (Blog, e
 		arg.BlogTitle,
 		arg.BlogContent,
 		arg.CreatedBy,
-		arg.PublishAt,
+		arg.Ispublish,
 	)
 	var i Blog
 	err := row.Scan(
@@ -43,7 +42,7 @@ func (q *Queries) CreateBlog(ctx context.Context, arg CreateBlogParams) (Blog, e
 		&i.BlogContent,
 		&i.CreatedBy,
 		&i.CreatedAt,
-		&i.PublishAt,
+		&i.Ispublish,
 		&i.VotesCount,
 	)
 	return i, err
@@ -60,7 +59,7 @@ func (q *Queries) DeleteBlog(ctx context.Context, id int64) error {
 }
 
 const getBlog = `-- name: GetBlog :one
-SELECT id, blog_title, blog_content, created_by, created_at, publish_at, votes_count FROM blogs
+SELECT id, blog_title, blog_content, created_by, created_at, ispublish, votes_count FROM blogs
 WHERE id = $1 LIMIT 1
 `
 
@@ -73,14 +72,14 @@ func (q *Queries) GetBlog(ctx context.Context, id int64) (Blog, error) {
 		&i.BlogContent,
 		&i.CreatedBy,
 		&i.CreatedAt,
-		&i.PublishAt,
+		&i.Ispublish,
 		&i.VotesCount,
 	)
 	return i, err
 }
 
 const listBlogs = `-- name: ListBlogs :many
-SELECT id, blog_title, blog_content, created_by, created_at, publish_at, votes_count FROM blogs
+SELECT id, blog_title, blog_content, created_by, created_at, ispublish, votes_count FROM blogs
 ORDER BY id
 LIMIT $1
 OFFSET $2
@@ -106,7 +105,7 @@ func (q *Queries) ListBlogs(ctx context.Context, arg ListBlogsParams) ([]Blog, e
 			&i.BlogContent,
 			&i.CreatedBy,
 			&i.CreatedAt,
-			&i.PublishAt,
+			&i.Ispublish,
 			&i.VotesCount,
 		); err != nil {
 			return nil, err
@@ -127,15 +126,15 @@ UPDATE blogs
 SET
   blog_title = COALESCE($1, blog_title),
   blog_content = COALESCE($2, blog_content),
-  publish_at = COALESCE($3, publish_at)
+  ispublish = COALESCE($3, ispublish)
 WHERE id = $4
-RETURNING id, blog_title, blog_content, created_by, created_at, publish_at, votes_count
+RETURNING id, blog_title, blog_content, created_by, created_at, ispublish, votes_count
 `
 
 type UpdateBlogParams struct {
 	BlogTitle   sql.NullString `json:"blog_title"`
 	BlogContent sql.NullString `json:"blog_content"`
-	PublishAt   sql.NullTime   `json:"publish_at"`
+	Ispublish   sql.NullBool   `json:"ispublish"`
 	ID          int64          `json:"id"`
 }
 
@@ -143,7 +142,7 @@ func (q *Queries) UpdateBlog(ctx context.Context, arg UpdateBlogParams) (Blog, e
 	row := q.db.QueryRowContext(ctx, updateBlog,
 		arg.BlogTitle,
 		arg.BlogContent,
-		arg.PublishAt,
+		arg.Ispublish,
 		arg.ID,
 	)
 	var i Blog
@@ -153,7 +152,7 @@ func (q *Queries) UpdateBlog(ctx context.Context, arg UpdateBlogParams) (Blog, e
 		&i.BlogContent,
 		&i.CreatedBy,
 		&i.CreatedAt,
-		&i.PublishAt,
+		&i.Ispublish,
 		&i.VotesCount,
 	)
 	return i, err
