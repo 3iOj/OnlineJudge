@@ -14,4 +14,6 @@ test:
 	go test -v -cover ./...
 server:
 	go run main.go
+newmigration:
+	migrate create -ext sql -dir db/migration -seq $(name)
 .PHONY:postgres createdb dropdb migrateup migratedown sqlc test server  

@@ -47,12 +47,12 @@ CREATE TABLE "problems" (
   "contest_id" bigint NOT NULL
 );
 
-CREATE TABLE "problem_tests" (
-  "id" bigint PRIMARY KEY,
-  "problem_id" bigint NOT NULL,
-  "input" text NOT NULL,
-  "output" text NOT NULL
-);
+-- CREATE TABLE "problem_tests" (
+--   "id" bigint PRIMARY KEY,
+--   "problem_id" bigint NOT NULL,
+--   "input" text NOT NULL,
+--   "output" text NOT NULL
+-- );
 
 CREATE TABLE "problem_creators" (
   "problem_id" bigint,
