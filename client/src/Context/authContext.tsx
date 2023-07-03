@@ -3,7 +3,7 @@ import type { FC, ReactNode } from 'react';
 import PropTypes from 'prop-types';
 import Axios from "axios";
 
-interface User {
+export interface User {
   id: string;
   // avatar: string;
   email: string;
@@ -15,7 +15,7 @@ interface User {
 interface State {
   isInitialized: boolean;
   isAuthenticated: boolean;
-  user: User | null | string;
+  user: User | null;
 }
 
 interface AuthContextValue extends State {
@@ -32,14 +32,14 @@ type InitializeAction = {
   type: 'INITIALIZE';
   payload: {
     isAuthenticated: boolean;
-    user: User | null | string;
+    user: User | null;
   };
 };
 
 type LoginAction = {
   type: 'LOGIN';
   payload: {
-    user: User | string;
+    user: User;
   };
 };
 
@@ -50,7 +50,7 @@ type LogoutAction = {
 type RegisterAction = {
   type: 'REGISTER';
   payload: {
-    user: User | string;
+    user: User;
   };
 };
 

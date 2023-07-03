@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { useAuth } from '../Context/authContext';
-import Login from '../Components/Users/Login';
+import Login from '../Components/Authentication/Login';
 
 interface AuthGuardProps {
   children: ReactNode;
