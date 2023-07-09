@@ -47,13 +47,6 @@ CREATE TABLE "problems" (
   "contest_id" bigint NOT NULL
 );
 
--- CREATE TABLE "problem_tests" (
---   "id" bigint PRIMARY KEY,
---   "problem_id" bigint NOT NULL,
---   "input" text NOT NULL,
---   "output" text NOT NULL
--- );
-
 CREATE TABLE "problem_creators" (
   "problem_id" bigint,
   "created_by" varchar(100),
@@ -251,8 +244,6 @@ ALTER TABLE "contest_creators" ADD FOREIGN KEY ("creator_name") REFERENCES "user
 ALTER TABLE "problem_creators" ADD FOREIGN KEY ("problem_id") REFERENCES "problems" ("id");
 
 ALTER TABLE "problem_creators" ADD FOREIGN KEY ("created_by") REFERENCES "users" ("username");
-
-ALTER TABLE "problem_tests" ADD FOREIGN KEY ("problem_id") REFERENCES "problems" ("id");
 
 ALTER TABLE "submission_tests" ADD FOREIGN KEY ("submission_id") REFERENCES "submissions" ("id");
 

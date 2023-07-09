@@ -29,16 +29,16 @@ INSERT INTO problems (
 `
 
 type CreateProblemParams struct {
-	ProblemName   string    `json:"problem_name"`
-	Description   string    `json:"description"`
-	SampleInput   string    `json:"sample_input"`
-	SampleOutput  string    `json:"sample_output"`
-	IdealSolution string    `json:"ideal_solution"`
-	TimeLimit     int32     `json:"time_limit"`
-	MemoryLimit   int32     `json:"memory_limit"`
-	CodeSize      int32     `json:"code_size"`
-	CreatedAt     time.Time `json:"created_at"`
-	ContestID     int64     `json:"contest_id"`
+	ProblemName   string         `json:"problem_name"`
+	Description   string         `json:"description"`
+	SampleInput   sql.NullString `json:"sample_input"`
+	SampleOutput  sql.NullString `json:"sample_output"`
+	IdealSolution sql.NullString `json:"ideal_solution"`
+	TimeLimit     sql.NullInt32  `json:"time_limit"`
+	MemoryLimit   sql.NullInt32  `json:"memory_limit"`
+	CodeSize      sql.NullInt32  `json:"code_size"`
+	CreatedAt     time.Time      `json:"created_at"`
+	ContestID     int64          `json:"contest_id"`
 }
 
 func (q *Queries) CreateProblem(ctx context.Context, arg CreateProblemParams) (Problem, error) {
