@@ -3,7 +3,6 @@ import Axios from 'axios';
 import { Navigate } from 'react-router-dom';
 interface User {
   id: string;
-  // avatar: string;
   email: string;
   name: string;
   dob: string;
@@ -21,12 +20,12 @@ const Login: React.FC = () => {
 
   Axios.defaults.withCredentials = true;
   const handleLogin = (e :React.FormEvent) => {
-    e.preventDefault;
+    e.preventDefault();
     const data = {
       username,
       password
     };
-    
+    console.log(data);
     Axios.post('http://localhost:8080/users/login', data)
       .then(response => {
         console.log(response.data);

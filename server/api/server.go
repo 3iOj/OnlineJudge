@@ -5,9 +5,9 @@ import (
 
 	"github.com/3iOj/OnlineJudge/api/admin"
 	blog "github.com/3iOj/OnlineJudge/api/blogs"
-	problem "github.com/3iOj/OnlineJudge/api/problems"
 	contest "github.com/3iOj/OnlineJudge/api/contests"
 	"github.com/3iOj/OnlineJudge/api/middleware"
+	problem "github.com/3iOj/OnlineJudge/api/problems"
 	user "github.com/3iOj/OnlineJudge/api/users"
 	db "github.com/3iOj/OnlineJudge/db/sqlc"
 	"github.com/3iOj/OnlineJudge/token"
@@ -33,14 +33,14 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 		config:     config,
 		tokenMaker: tokenMaker,
 	}
-	
+
 	server.setupRouter()
 	return server, err
 }
 
-
-func(server *Server)  setupRouter() {
-router := gin.Default()
+func (server *Server) setupRouter() {
+	router := gin.Default()
+	router.Use(middleware.CorsMiddleware())
 
 	authRoutes := router.Group("/").Use(middleware.AuthMiddleware(server.tokenMaker))
 	adminHandler := admin.NewHandler(
@@ -49,48 +49,36 @@ router := gin.Default()
 		server.tokenMaker,
 	)
 	authRoutes.POST("/admin/register", adminHandler.CreateAdmin)
-    userHandler := user.NewHandler(
+	userHandler := user.NewHandler(
 		server.config,
 		server.store,
 		server.tokenMaker,
 	)
-	
+
 	router.POST("/users/register", userHandler.CreateUser)
-    router.POST("/users/login", userHandler.LoginUser)
-    // router.GET("/users", userHandler.ListUsers)
-    router.GET("/users/:username", userHandler.GetUser)//profile page
-	
-	
-    
-	// authRoutes.POST("/admin/register", adminHandler.CreateAdmin)
+	router.POST("/users/login", userHandler.LoginUser)
+	router.GET("/users", userHandler.ListUsers)
+	router.GET("/users/:username", userHandler.GetUser) //profile page
 	authRoutes.PUT("/users/:username/", userHandler.UpdateUser)
-	
-	
-	
-    contestHandler := contest.NewHandler(
+	contestHandler := contest.NewHandler(
 		server.config,
 		server.store,
 		server.tokenMaker,
 	)
-	
-	router.GET("/contests/:username",contestHandler.GetContest)
+	router.GET("/contests/:username", contestHandler.GetContest)
 	router.GET("/contests", contestHandler.ListContests)
 	authRoutes.POST("/contests/create", contestHandler.CreateContest)
 	authRoutes.GET("/contest/:id", contestHandler.GetContest)
 	authRoutes.PUT("/contests/edit/:id", contestHandler.UpdateContest)
-
 	blogHandler := blog.NewHandler(
 		server.config,
 		server.store,
 		server.tokenMaker,
 	)
-
 	authRoutes.POST("/blogs", blogHandler.CreateBlog)
 	router.GET("/blogs", blogHandler.ListBlogs)
 	router.GET("/blogs/:id", blogHandler.GetBlog)
-	authRoutes.PUT("/blogs/:id",blogHandler.UpdateBlog)
-
-	
+	authRoutes.PUT("/blogs/:id", blogHandler.UpdateBlog)
 
 	problemHandler := problem.NewHandler(
 		server.config,
@@ -100,17 +88,17 @@ router := gin.Default()
 	authRoutes.POST("/problems", problemHandler.CreateProblem)
 	router.GET("/problems", problemHandler.ListProblems)
 	router.GET("/problems/:id", problemHandler.GetProblem)
-	authRoutes.PUT("/problems/:id",problemHandler.UpdateProblem)
+	authRoutes.PUT("/problems/:id", problemHandler.UpdateProblem)
 	server.router = router
 }
-
 
 func (server *Server) Start(address string) error {
 	return server.router.Run(address)
 }
 
-func ErrorResponse(err error) gin.H{
+func ErrorResponse(err error) gin.H {
 	return gin.H{
-		"error" : err.Error(),
+		"error": err.Error(),
 	}
 }
+

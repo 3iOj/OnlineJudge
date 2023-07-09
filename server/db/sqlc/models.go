@@ -7,6 +7,8 @@ package db
 import (
 	"database/sql"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Admin struct {
@@ -100,19 +102,19 @@ type ProbTag struct {
 }
 
 type Problem struct {
-	ID           int64  `json:"id"`
-	ProblemName  string `json:"problem_name"`
-	Description  string `json:"description"`
-	SampleInput  string `json:"sample_input"`
-	SampleOutput string `json:"sample_output"`
+	ID           int64          `json:"id"`
+	ProblemName  string         `json:"problem_name"`
+	Description  string         `json:"description"`
+	SampleInput  sql.NullString `json:"sample_input"`
+	SampleOutput sql.NullString `json:"sample_output"`
 	// to generate the output files in problemTests
-	IdealSolution string `json:"ideal_solution"`
+	IdealSolution sql.NullString `json:"ideal_solution"`
 	// should be in seconds
-	TimeLimit int32 `json:"time_limit"`
+	TimeLimit sql.NullInt32 `json:"time_limit"`
 	// should be in MB
-	MemoryLimit int32 `json:"memory_limit"`
+	MemoryLimit sql.NullInt32 `json:"memory_limit"`
 	// should be in KB
-	CodeSize  int32         `json:"code_size"`
+	CodeSize  sql.NullInt32 `json:"code_size"`
 	Rating    sql.NullInt32 `json:"rating"`
 	CreatedAt time.Time     `json:"created_at"`
 	ContestID int64         `json:"contest_id"`
@@ -124,19 +126,28 @@ type ProblemCreator struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-type ProblemTest struct {
-	ID        int64  `json:"id"`
-	ProblemID int64  `json:"problem_id"`
-	Input     string `json:"input"`
-	Output    string `json:"output"`
-}
-
 type Request struct {
 	Username        string         `json:"username"`
 	AdminName       string         `json:"admin_name"`
 	PermissionAsked sql.NullString `json:"permission_asked"`
 	CurrentStatus   sql.NullString `json:"current_status"`
 	CreatedAt       time.Time      `json:"created_at"`
+}
+
+type Session struct {
+	ID            uuid.UUID      `json:"id"`
+	Name          string         `json:"name"`
+	Username      string         `json:"username"`
+	Email         string         `json:"email"`
+	RefreshToken  string         `json:"refresh_token"`
+	Profileimg    sql.NullString `json:"profileimg"`
+	Motto         sql.NullString `json:"motto"`
+	CreatedAt     time.Time      `json:"created_at"`
+	Dob           time.Time      `json:"dob"`
+	Rating        sql.NullInt32  `json:"rating"`
+	ProblemSolved sql.NullInt32  `json:"problem_solved"`
+	AdminID       sql.NullInt64  `json:"admin_id"`
+	IsSetter      bool           `json:"is_setter"`
 }
 
 type Submission struct {

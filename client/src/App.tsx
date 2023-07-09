@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import { FaBars } from 'react-icons/fa'
-import logo from "./3iojlongo.png";
+import logo from "./3ioj-logo.png";
 import Contests from './Components/Contests/Contests.tsx';
 import Home from './Pages/Home/Home.tsx';
 import Problems from './Components/Problems/Problems.tsx';
@@ -9,7 +9,7 @@ import Login from './Components/Authentication/Login.tsx';
 import Register from './Components/Authentication/Register.tsx';
 import Profile from './Components/User/Profile.tsx';
 
-export interface IApplicationProps { }
+
 
 const App: React.FC<IApplicationProps> = (props) => {
   // const [user, setUser] = useState<User | null>(null);
@@ -17,8 +17,10 @@ const App: React.FC<IApplicationProps> = (props) => {
   const [loginStatus, setLoginStatus] = useState(false);
   const linksContainerRef: any = useRef(null);
   const linksRef: any = useRef(null);
-  useEffect(()=>{
-    if(localStorage.getItem('info')){
+  useEffect(() => {
+    const userstorage = localStorage.getItem('info')
+    if (userstorage) {
+      console.log(userstorage)
       setLoginStatus(true);
     }
   },[]);

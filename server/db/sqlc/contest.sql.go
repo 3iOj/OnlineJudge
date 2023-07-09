@@ -123,30 +123,30 @@ C.id = P.contest_id WHERE C.id = $1
 `
 
 type GetContestRow struct {
-	ID                int64         `json:"id"`
-	ContestName       string        `json:"contest_name"`
-	StartTime         sql.NullTime  `json:"start_time"`
-	EndTime           sql.NullTime  `json:"end_time"`
-	Duration          int64         `json:"duration"`
-	RegistrationStart sql.NullTime  `json:"registration_start"`
-	RegistrationEnd   sql.NullTime  `json:"registration_end"`
-	AnnouncementBlog  sql.NullInt64 `json:"announcement_blog"`
-	EditorialBlog     sql.NullInt64 `json:"editorial_blog"`
-	CreatedAt         time.Time     `json:"created_at"`
-	UpdatedAt         sql.NullTime  `json:"updated_at"`
-	Ispublish         sql.NullBool  `json:"ispublish"`
-	ID_2              int64         `json:"id_2"`
-	ProblemName       string        `json:"problem_name"`
-	Description       string        `json:"description"`
-	SampleInput       string        `json:"sample_input"`
-	SampleOutput      string        `json:"sample_output"`
-	IdealSolution     string        `json:"ideal_solution"`
-	TimeLimit         int32         `json:"time_limit"`
-	MemoryLimit       int32         `json:"memory_limit"`
-	CodeSize          int32         `json:"code_size"`
-	Rating            sql.NullInt32 `json:"rating"`
-	CreatedAt_2       time.Time     `json:"created_at_2"`
-	ContestID         int64         `json:"contest_id"`
+	ID                int64          `json:"id"`
+	ContestName       string         `json:"contest_name"`
+	StartTime         sql.NullTime   `json:"start_time"`
+	EndTime           sql.NullTime   `json:"end_time"`
+	Duration          int64          `json:"duration"`
+	RegistrationStart sql.NullTime   `json:"registration_start"`
+	RegistrationEnd   sql.NullTime   `json:"registration_end"`
+	AnnouncementBlog  sql.NullInt64  `json:"announcement_blog"`
+	EditorialBlog     sql.NullInt64  `json:"editorial_blog"`
+	CreatedAt         time.Time      `json:"created_at"`
+	UpdatedAt         sql.NullTime   `json:"updated_at"`
+	Ispublish         sql.NullBool   `json:"ispublish"`
+	ID_2              int64          `json:"id_2"`
+	ProblemName       string         `json:"problem_name"`
+	Description       string         `json:"description"`
+	SampleInput       sql.NullString `json:"sample_input"`
+	SampleOutput      sql.NullString `json:"sample_output"`
+	IdealSolution     sql.NullString `json:"ideal_solution"`
+	TimeLimit         sql.NullInt32  `json:"time_limit"`
+	MemoryLimit       sql.NullInt32  `json:"memory_limit"`
+	CodeSize          sql.NullInt32  `json:"code_size"`
+	Rating            sql.NullInt32  `json:"rating"`
+	CreatedAt_2       time.Time      `json:"created_at_2"`
+	ContestID         int64          `json:"contest_id"`
 }
 
 func (q *Queries) GetContest(ctx context.Context, id int64) (GetContestRow, error) {
