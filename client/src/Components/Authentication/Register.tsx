@@ -26,7 +26,7 @@ const Register:React.FC = () => {
       .then(response => {
         console.log(response.data);
         setRegistrationSuccess(true);
-        alert(`Succesfully registered`);
+        // alert(`Succesfully registered`);
       })
       .catch(error => {
         console.log(error);
