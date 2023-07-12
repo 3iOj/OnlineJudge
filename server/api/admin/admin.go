@@ -25,13 +25,13 @@ func NewHandler(
 	}
 }
 
-
 type createAdminRequest struct {
 	Name     string `json:"name" binding:"required"`
 	Username string `json:"username" binding:"required"`
 	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
+
 func (handler *Handler) CreateAdmin(ctx *gin.Context) {
 	var req createAdminRequest
 
@@ -40,7 +40,7 @@ func (handler *Handler) CreateAdmin(ctx *gin.Context) {
 			"error": err.Error(),
 		})
 		return
-	}	
+	}
 	hashedPassword, err := util.HashPassword(req.Password)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -49,10 +49,10 @@ func (handler *Handler) CreateAdmin(ctx *gin.Context) {
 		return
 	}
 	arg := db.CreateAdminParams{
-		Name:       req.Name,
-		Username:   req.Username,
-		Email:      req.Email,
-		Password:   hashedPassword,
+		Name:     req.Name,
+		Username: req.Username,
+		Email:    req.Email,
+		Password: hashedPassword,
 	}
 	admin, err := handler.store.CreateAdmin(ctx, arg)
 	if err != nil {
@@ -62,6 +62,3 @@ func (handler *Handler) CreateAdmin(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, admin)
 }
-
-
-

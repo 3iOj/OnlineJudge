@@ -52,7 +52,7 @@ func (handler *Handler) CreateBlog(ctx *gin.Context) {
 		BlogTitle:   req.BlogTitle,
 		BlogContent: req.BlogContent,
 		CreatedBy:   authPayload.Username,
-		Ispublish:   sql.NullBool{Bool:req.Ispublish,Valid: true},
+		Ispublish:   sql.NullBool{Bool: req.Ispublish, Valid: true},
 	}
 	blog, err := handler.store.CreateBlog(ctx, arg)
 	if err != nil {

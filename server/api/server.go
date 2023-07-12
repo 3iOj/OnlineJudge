@@ -92,8 +92,8 @@ func (server *Server) setupRouter() {
 	server.router = router
 }
 
-func (server *Server) Start(address string) error {
-	return server.router.Run(address)
+func (server *Server) Start(port string) error {
+	return server.router.Run(":" + port)
 }
 
 func ErrorResponse(err error) gin.H {
@@ -101,4 +101,3 @@ func ErrorResponse(err error) gin.H {
 		"error": err.Error(),
 	}
 }
-

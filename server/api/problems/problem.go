@@ -13,23 +13,24 @@ import (
 
 type Handler struct {
 	config     util.Config
-	store db.Store
+	store      db.Store
 	tokenMaker token.Maker
 }
+
 func NewHandler(
 	config util.Config,
 	store db.Store,
 	tokenMaker token.Maker,
 ) *Handler {
 	return &Handler{
-		config,store, tokenMaker,
+		config, store, tokenMaker,
 	}
 }
 
 type createProblemRequest struct {
-	ProblemName  string `json:"problem_name" binding:"required"`
-	Description  string `json:"description" binding:"required"`
-	ContestID    int64  `json:"contest_id" binding:"required"`
+	ProblemName string `json:"problem_name" binding:"required"`
+	Description string `json:"description" binding:"required"`
+	ContestID   int64  `json:"contest_id" binding:"required"`
 }
 
 func (handler *Handler) CreateProblem(ctx *gin.Context) {
@@ -40,10 +41,10 @@ func (handler *Handler) CreateProblem(ctx *gin.Context) {
 		})
 		return
 	}
-	arg := db.CreateProblemParams {
-		ProblemName : req.ProblemName,
-    	Description : req.Description,
-		ContestID: req.ContestID,
+	arg := db.CreateProblemParams{
+		ProblemName: req.ProblemName,
+		Description: req.Description,
+		ContestID:   req.ContestID,
 	}
 
 	problem, err := handler.store.CreateProblem(ctx, arg)
@@ -52,7 +53,7 @@ func (handler *Handler) CreateProblem(ctx *gin.Context) {
 			"error": err.Error(),
 		})
 	}
-	ctx.JSON(http.StatusOK, problem) 
+	ctx.JSON(http.StatusOK, problem)
 }
 
 type getProblemRequest struct {
@@ -84,9 +85,9 @@ func (handler *Handler) GetProblem(ctx *gin.Context) {
 func (handler *Handler) UpdateProblem(ctx *gin.Context) {
 }
 
-
 func (handler *Handler) ListProblems(ctx *gin.Context) {
 }
+
 type listProblemsRequest struct {
 	PageID   int32 `form:"page_id"`
 	PageSize int32 `form:"page_size"`
@@ -122,6 +123,3 @@ func (handler *Handler) ListBlogs(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, problems)
 }
-
-
-

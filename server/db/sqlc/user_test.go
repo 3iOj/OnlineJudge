@@ -9,18 +9,18 @@ import (
 	util "github.com/3iOj/OnlineJudge/utils"
 	"github.com/stretchr/testify/require"
 )
+
 func createRandomUser(t *testing.T) User {
-	hashedPassword, err := util.HashPassword(util.RandomString(8));
-	require.NoError(t, err);
+	hashedPassword, err := util.HashPassword(util.RandomString(8))
+	require.NoError(t, err)
 	arg := CreateUserParams{
-		Username:       util.RandomUser(),
-		Password: 		hashedPassword,
-		Name:       	util.RandomUser(),
-		Email:       	util.RandomEmail(),
-		Dob:           	time.Date(1990, time.January, 15, 0, 0, 0, 0, time.UTC),
-	
+		Username: util.RandomUser(),
+		Password: hashedPassword,
+		Name:     util.RandomUser(),
+		Email:    util.RandomEmail(),
+		Dob:      time.Date(1990, time.January, 15, 0, 0, 0, 0, time.UTC),
 	}
-	
+
 	user, err := testQueries.CreateUser(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, user)

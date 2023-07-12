@@ -2,7 +2,7 @@
 /node_modules
 /client/node_modules/
 # Ignore .env files
-.env*
+*.env*
 
 # Ignore build artifacts
 /build

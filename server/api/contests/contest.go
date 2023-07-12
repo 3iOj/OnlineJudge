@@ -181,8 +181,7 @@ func (handler *Handler) UpdateContest(ctx *gin.Context) {
 		return
 	}
 	authPayload := ctx.MustGet(middleware.AuthorizationPayloadKey).(*token.Payload)
-	
-	
+
 	validContestCreators, err := handler.store.GetContestCreators(ctx, contest.ID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{

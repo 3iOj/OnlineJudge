@@ -15,7 +15,7 @@ func init() {
 
 // RandomInt generates a random integer between min and max
 func RandomInt(min, max int64) int64 {
-	return min + rand.Int63n(max - min + 1)
+	return min + rand.Int63n(max-min+1)
 }
 
 // RandomString generates a random string of length n
@@ -37,7 +37,7 @@ func RandomUser() string {
 }
 
 func RandomContestName() string {
-	return fmt.Sprintf("3iOj Round %d",(rand.Intn(100)))
+	return fmt.Sprintf("3iOj Round %d", (rand.Intn(100)))
 }
 
 // func RandomBlog

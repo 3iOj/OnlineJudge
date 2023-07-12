@@ -6,8 +6,7 @@ import (
 	"fmt"
 )
 
-
-//this interface has all queries and transactions
+// this interface has all queries and transactions
 type Store interface {
 	Querier
 	execTx(ctx context.Context, fn func(*Queries) error) error
@@ -22,7 +21,7 @@ type SQLStore struct { //will talk to real database
 func NewStore(db *sql.DB) Store {
 	return &SQLStore{
 		db:      db,
-		Queries: New(db),// a new query object
+		Queries: New(db), // a new query object
 	}
 }
 func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) error {
@@ -49,4 +48,3 @@ func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) erro
 
 	return tx.Commit()
 }
-
