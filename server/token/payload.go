@@ -6,10 +6,12 @@ import (
 
 	"github.com/google/uuid"
 )
+
 var (
 	ErrInvalidToken = errors.New("token is invalid")
 	ErrExpiredToken = errors.New("token has expired")
 )
+
 type Payload struct {
 	//id to uniquely identify each token
 	//to invalidate tokens incase they are leaked
@@ -18,7 +20,6 @@ type Payload struct {
 	IssuedAt  time.Time `json:"issued_at"`
 	ExpiredAt time.Time `json:"expired_at"`
 }
-
 
 func NewPayload(username string, duration time.Duration) (*Payload, error) {
 	tokenID, err := uuid.NewRandom()
@@ -35,8 +36,8 @@ func NewPayload(username string, duration time.Duration) (*Payload, error) {
 	return payload, nil
 }
 func (payload *Payload) Valid() error {
-    if time.Now().After(payload.ExpiredAt) {
-        return ErrExpiredToken
-    }
-    return nil
+	if time.Now().After(payload.ExpiredAt) {
+		return ErrExpiredToken
+	}
+	return nil
 }

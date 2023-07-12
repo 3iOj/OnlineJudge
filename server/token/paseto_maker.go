@@ -1,6 +1,5 @@
 package token
 
-
 //Paseto version 2 uses chachapol y algorithm to encrypt the payload
 import (
 	"fmt"

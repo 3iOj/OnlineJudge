@@ -19,16 +19,17 @@ import (
 
 type Handler struct {
 	config     util.Config
-	store db.Store
+	store      db.Store
 	tokenMaker token.Maker
 }
+
 func NewHandler(
 	config util.Config,
 	store db.Store,
 	tokenMaker token.Maker,
 ) *Handler {
 	return &Handler{
-		config,store, tokenMaker,
+		config, store, tokenMaker,
 	}
 }
 
@@ -184,24 +185,20 @@ func (handler *Handler) ListUsers(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, rsp)
 }
 
-
-
 type loginUserRequest struct {
-	Username   string    `json:"username" binding:"required,alphanum"`
-	Password   string    `json:"password" binding:"required,min=8"`
+	Username string `json:"username" binding:"required,alphanum"`
+	Password string `json:"password" binding:"required,min=8"`
 }
 
 type loginUserResponse struct {
-	AccessToken           string       `json:"access_token"`
-	User                  userResponse `json:"user"`
+	AccessToken string       `json:"access_token"`
+	User        userResponse `json:"user"`
 }
-
-
 
 func (handler *Handler) LoginUser(ctx *gin.Context) {
 	var req loginUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest,  gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
 		return
@@ -210,12 +207,12 @@ func (handler *Handler) LoginUser(ctx *gin.Context) {
 	user, err := handler.store.GetUser(ctx, req.Username)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			ctx.JSON(http.StatusNotFound,  gin.H{
-			"error": err.Error(),
+			ctx.JSON(http.StatusNotFound, gin.H{
+				"error": err.Error(),
 			})
 			return
 		}
-		ctx.JSON(http.StatusInternalServerError,  gin.H{
+		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
@@ -229,7 +226,7 @@ func (handler *Handler) LoginUser(ctx *gin.Context) {
 		return
 	}
 
-	accessToken, payload,err := handler.tokenMaker.CreateToken(
+	accessToken, payload, err := handler.tokenMaker.CreateToken(
 		user.Username,
 		handler.config.AccessTokenDuration,
 	)
@@ -243,8 +240,8 @@ func (handler *Handler) LoginUser(ctx *gin.Context) {
 	fmt.Print(payload)
 
 	rsp := loginUserResponse{
-		AccessToken:           accessToken,
-		User:                  newUserResponse(user),
+		AccessToken: accessToken,
+		User:        newUserResponse(user),
 	}
 	ctx.JSON(http.StatusOK, rsp)
 }
@@ -253,13 +250,13 @@ type updateUser struct {
 	Username string `uri:"username" binding:"required,alphanum"`
 }
 type updateUserRequest struct {
-    Password   string `json:"password"`
-    Name       string `json:"name"`
-    Email      string `json:"email"`
-    Dob        time.Time `json:"dob"`
-    Profileimg string `json:"profileimg"`
-    Motto      string `json:"motto"`
-    IsSetter   bool   `json:"is_setter"`
+	Password   string    `json:"password"`
+	Name       string    `json:"name"`
+	Email      string    `json:"email"`
+	Dob        time.Time `json:"dob"`
+	Profileimg string    `json:"profileimg"`
+	Motto      string    `json:"motto"`
+	IsSetter   bool      `json:"is_setter"`
 }
 
 func (handler *Handler) UpdateUser(ctx *gin.Context) {
@@ -281,7 +278,7 @@ func (handler *Handler) UpdateUser(ctx *gin.Context) {
 	authPayload := ctx.MustGet(middleware.AuthorizationPayloadKey).(*token.Payload)
 	if authPayload.Username != user.Username {
 		err := errors.New("account doesn't belong to the authenticated user")
-		ctx.JSON(http.StatusUnauthorized,gin.H{
+		ctx.JSON(http.StatusUnauthorized, gin.H{
 			"error": err.Error(),
 		})
 		return
@@ -295,14 +292,14 @@ func (handler *Handler) UpdateUser(ctx *gin.Context) {
 		return
 	}
 	arg := db.UpdateUserParams{
-		Name:     sql.NullString{String: req.Name, Valid:true},
+		Name:     sql.NullString{String: req.Name, Valid: true},
 		Username: user.Username,
-		Email:    sql.NullString{String: req.Email, Valid:true},
+		Email:    sql.NullString{String: req.Email, Valid: true},
 		Password: sql.NullString{
 			String: hashedUpdatedPassword,
 			Valid:  true,
 		},
-		Dob:        sql.NullTime{Time: req.Dob, Valid:true},
+		Dob:        sql.NullTime{Time: req.Dob, Valid: true},
 		Profileimg: sql.NullString{String: req.Profileimg, Valid: true},
 		Motto:      sql.NullString{String: req.Motto, Valid: true},
 	}
@@ -318,5 +315,3 @@ func (handler *Handler) UpdateUser(ctx *gin.Context) {
 	rsp := newUserResponse(updatedUser)
 	ctx.JSON(http.StatusOK, rsp)
 }
-
-
