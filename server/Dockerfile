@@ -11,6 +11,9 @@ COPY go.mod go.sum ./
 
 # Download the dependencies
 RUN go mod download
+RUN go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+RUN apk add --no-cache make
 
 # Copy the rest of the application code to the container
 # first dot represents the root of the folder
@@ -23,7 +26,7 @@ EXPOSE 8080
 # Build the application
 # RUN go build -o /main
 
-CMD ["air", "-c", ".air.toml"]
+CMD ["./startup.sh"]
 
 # Start the backend server
 # CMD ["/main"]

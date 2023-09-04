@@ -17,7 +17,12 @@ services:
     volumes:
       - ./server:/app
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    environment:
+      - CGO_ENABLED = 1
 
   db:
     image: "postgres:${POSTGRES_VERSION}"
@@ -27,3 +32,11 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
+    healthcheck:
+      test: pg_isready -d ${POSTGRES_DB} -U ${POSTGRES_USER}
+
+  rabbitmq:
+    image: "rabbitmq:3.12-management-alpine"
+    ports:
+      - "5672:5672"
+      - "15672:15672"

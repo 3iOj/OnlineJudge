@@ -5,11 +5,11 @@ createdb:
 dropdb:
 	docker exec -it postgres15 dropdb 3iOj
 migrateup:
-	migrate -path db/migration -database "postgresql://root:secret@localhost:5432/3iOj?sslmode=disable" --verbose up
+	migrate -path db/migration -database "postgresql://root:secret@db:5432/3iOj?sslmode=disable" --verbose up
 migratedown:
-	migrate -path db/migration -database "postgresql://root:secret@localhost:5432/3iOj?sslmode=disable" --verbose down
+	migrate -path db/migration -database "postgresql://root:secret@db:5432/3iOj?sslmode=disable" --verbose down
 sqlc-gen:
-	docker run --rm -v $${pwd}:/src -w /src kjconroy/sqlc generate
+	sqlc generate
 test:
 	go test -v -cover ./...
 server:
