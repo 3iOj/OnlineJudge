@@ -89,6 +89,7 @@ func (server *Server) setupRouter() {
 	router.GET("/problems", problemHandler.ListProblems)
 	router.GET("/problems/:id", problemHandler.GetProblem)
 	authRoutes.PUT("/problems/:id", problemHandler.UpdateProblem)
+    router.POST("/problems/testcases/:id", problemHandler.SubmitTestCases)
 	server.router = router
 }
 

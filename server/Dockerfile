@@ -1,5 +1,5 @@
 # Use the official Golang 1.20 image as the base image
-FROM golang:1.20-alpine3.18
+FROM golang:1.21-alpine3.18
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -8,11 +8,11 @@ RUN go install github.com/cosmtrek/air@latest
 
 # Copy the go.mod and go.sum files to the container
 COPY go.mod go.sum ./
+COPY ./ioj-d5979-firebase-adminsdk-3chcs-f66e4578d8.json ./.config/serviceAccountKey.json
 
 # Download the dependencies
 RUN go mod download
 RUN go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
-RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 RUN apk add --no-cache make
 
 # Copy the rest of the application code to the container
