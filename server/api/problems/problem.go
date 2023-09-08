@@ -86,6 +86,7 @@ func (handler *Handler) GetProblem(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, problem)
 }
+
 type updateProblem struct {
 	problemid int64 `uri:"id" binding:"required,alphanum"`
 }
@@ -95,15 +96,16 @@ type updateUserRequest struct {
 	SampleInput   string `json:"sample_input"`
 	SampleOutput  string `json:"sample_output"`
 	IdealSolution string `json:"ideal_solution"`
-	TimeLimit     int32 `json:"time_limit"`
-	MemoryLimit   int32 `json:"memory_limit"`
-	CodeSize      int32 `json:"code_size"`
-	Rating        int32 `json:"rating"`
+	TimeLimit     int32  `json:"time_limit"`
+	MemoryLimit   int32  `json:"memory_limit"`
+	CodeSize      int32  `json:"code_size"`
+	Rating        int32  `json:"rating"`
 }
+
 func (handler *Handler) UpdateProblem(ctx *gin.Context) {
-    var problem updateProblem
-    var req updateUserRequest
-    
+	var problem updateProblem
+	var req updateUserRequest
+
 	if err := ctx.ShouldBindUri(&problem); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
@@ -116,79 +118,79 @@ func (handler *Handler) UpdateProblem(ctx *gin.Context) {
 		})
 		return
 	}
-    arg := db.UpdateProblemParams{
-        ID: problem.problemid,
-        ProblemName  : sql.NullString{String: req.Problemname, Valid: true}, 
-        Description  : sql.NullString{String: req.Description, Valid: true}, 
-        SampleInput  : sql.NullString{String: req.SampleInput, Valid: true}, 
-        SampleOutput : sql.NullString{String: req.SampleOutput, Valid: true}, 
-        IdealSolution: sql.NullString{String: req.IdealSolution, Valid: true}, 
-        TimeLimit    : sql.NullInt32{Int32: req.TimeLimit, Valid: true}, 
-        MemoryLimit  : sql.NullInt32{Int32: req.MemoryLimit, Valid: true}, 
-        CodeSize     : sql.NullInt32{Int32: req.CodeSize, Valid: true}, 
-        Rating       : sql.NullInt32{Int32: req.Rating, Valid: true}, 
-    }
-    updatedProblem, err := handler.store.UpdateProblem(ctx, arg)
-    if err != nil {
-        ctx.JSON(http.StatusNotModified, gin.H{
-            "error": err.Error(),
-        })
-        return
-    }
-    
-    ctx.JSON(http.StatusOK, updatedProblem)
+	arg := db.UpdateProblemParams{
+		ID:            problem.problemid,
+		ProblemName:   sql.NullString{String: req.Problemname, Valid: true},
+		Description:   sql.NullString{String: req.Description, Valid: true},
+		SampleInput:   sql.NullString{String: req.SampleInput, Valid: true},
+		SampleOutput:  sql.NullString{String: req.SampleOutput, Valid: true},
+		IdealSolution: sql.NullString{String: req.IdealSolution, Valid: true},
+		TimeLimit:     sql.NullInt32{Int32: req.TimeLimit, Valid: true},
+		MemoryLimit:   sql.NullInt32{Int32: req.MemoryLimit, Valid: true},
+		CodeSize:      sql.NullInt32{Int32: req.CodeSize, Valid: true},
+		Rating:        sql.NullInt32{Int32: req.Rating, Valid: true},
+	}
+	updatedProblem, err := handler.store.UpdateProblem(ctx, arg)
+	if err != nil {
+		ctx.JSON(http.StatusNotModified, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, updatedProblem)
 }
 
 type submitTestCases struct {
-    problemid int64 `uri:"id" binding:"required,alphanum"`
+	problemid int64 `uri:"id" binding:"required,alphanum"`
 }
 
 type submitTestCasesRequest struct {
-    TestCases *multipart.FileHeader `form:"testcases" binding:"required"`
+	TestCases *multipart.FileHeader `form:"testcases" binding:"required"`
 }
 
 func (handler *Handler) SubmitTestCases(ctx *gin.Context) {
-    var req submitTestCasesRequest
-    var problem submitTestCases
+	var req submitTestCasesRequest
+	var problem submitTestCases
 
-    if err := ctx.ShouldBind(&req); err!=nil {
-        ctx.JSON(http.StatusBadRequest, gin.H{
-            "error": err.Error(),
-        })
-        return
-    }
-    if err := ctx.ShouldBindUri(&problem); err!=nil {
-        ctx.JSON(http.StatusBadRequest, gin.H{
-            "error": err.Error(),
-        })
-        return
-    }
+	if err := ctx.ShouldBind(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	if err := ctx.ShouldBindUri(&problem); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 
-    tempDir, err := ioutil.TempDir("", "uploads")
-    if err != nil {
-        ctx.JSON(http.StatusInternalServerError, gin.H{
-            "error": err.Error(),
-        })
-        return
-    }
-    defer os.RemoveAll(tempDir)
+	tempDir, err := ioutil.TempDir("", "uploads")
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	defer os.RemoveAll(tempDir)
 
-    uploadedFilePath := filepath.Join(tempDir, req.TestCases.Filename)
-    if err := ctx.SaveUploadedFile(req.TestCases, uploadedFilePath); err != nil {
-        ctx.JSON(http.StatusInternalServerError, gin.H{
-            "error": err.Error(),
-        })
-        return
-    }
+	uploadedFilePath := filepath.Join(tempDir, req.TestCases.Filename)
+	if err := ctx.SaveUploadedFile(req.TestCases, uploadedFilePath); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 
-    go func() {
-        util.Unzip(uploadedFilePath, tempDir)
-        util.UploadFile(tempDir, problem.problemid)
-    }()
+	go func() {
+		util.Unzip(uploadedFilePath, tempDir)
+		util.UploadFile(tempDir, problem.problemid)
+	}()
 
-    ctx.JSON(http.StatusOK, gin.H{
-        "message": "file uploaded successfully",
-    })
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "file uploaded successfully",
+	})
 }
 
 func (handler *Handler) ListProblems(ctx *gin.Context) {

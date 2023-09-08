@@ -8,7 +8,6 @@ RUN go install github.com/cosmtrek/air@latest
 
 # Copy the go.mod and go.sum files to the container
 COPY go.mod go.sum ./
-COPY ./ioj-d5979-firebase-adminsdk-3chcs-f66e4578d8.json ./.config/serviceAccountKey.json
 
 # Download the dependencies
 RUN go mod download

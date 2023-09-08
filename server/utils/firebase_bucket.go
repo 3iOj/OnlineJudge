@@ -12,58 +12,58 @@ import (
 	"google.golang.org/api/option"
 )
 
-func UploadFile (srcPath string, object int64) {
-    logger := GetLogger()
-    ctx := context.Background()
-    opt := option.WithCredentialsFile("./ioj-d5979-firebase-adminsdk-3chcs-f66e4578d8.json")
+func UploadFile(srcPath string, object int64) {
+	logger := GetLogger()
+	ctx := context.Background()
+	opt := option.WithCredentialsFile(".config/serviceAccountCredentials.json")
 
-    client, err := storage.NewClient(ctx, opt)
-    if err != nil {
-        logger.Fatal().Err(err).Msg("Unable to create a firebase storage client.")
-        return
-    }
+	client, err := storage.NewClient(ctx, opt)
+	if err != nil {
+		logger.Fatal().Err(err).Msg("Unable to create a firebase storage client.")
+		return
+	}
 
-    config, err := LoadConfig(".") 
-    if err != nil {
-       logger.Fatal().Err(err).Msg("cannot load config") 
-    return
-    }
+	config, err := LoadConfig(".")
+	if err != nil {
+		logger.Fatal().Err(err).Msg("cannot load config")
+		return
+	}
 
-    bkt := client.Bucket(config.BucketName)
-    var fileIdx int8 = 1
+	bkt := client.Bucket(config.BucketName)
+	var fileIdx int8 = 1
 
-    err = filepath.WalkDir(srcPath, func(path string, d fs.DirEntry, err error) error {
-        
-        file, err := os.Open(path)
-        if err != nil {
-            logger.Fatal().Err(err).Msg("Unable to open file for reading.")
-            return err
-        }
-        defer file.Close()
+	err = filepath.WalkDir(srcPath, func(path string, d fs.DirEntry, err error) error {
 
-        if d.IsDir() {
-            return nil
-        }
+		file, err := os.Open(path)
+		if err != nil {
+			logger.Fatal().Err(err).Msg("Unable to open file for reading.")
+			return err
+		}
+		defer file.Close()
 
-        currObj := bkt.Object(fmt.Sprintf("%d_%d", object, fileIdx))
-        objWriter := currObj.NewWriter(ctx)
+		if d.IsDir() {
+			return nil
+		}
 
-        if _, err := io.Copy(objWriter, file); err != nil {
-            logger.Fatal().Err(err).Msg("Unable to write file contents to bucket object.")
-            return err
-        }
-        if err := objWriter.Close(); err != nil {
-            logger.Fatal().Err(err).Msg("Error closing object writer.")
-            return err
-        }
+		currObj := bkt.Object(fmt.Sprintf("%d_%d", object, fileIdx))
+		objWriter := currObj.NewWriter(ctx)
 
-        fileIdx++
-        return nil
-    })
-    if err != nil {
-        logger.Fatal().Err(err).Msg("Cannot walk over src directory.")
-    }
+		if _, err := io.Copy(objWriter, file); err != nil {
+			logger.Fatal().Err(err).Msg("Unable to write file contents to bucket object.")
+			return err
+		}
+		if err := objWriter.Close(); err != nil {
+			logger.Fatal().Err(err).Msg("Error closing object writer.")
+			return err
+		}
 
-    logger.Info().Msg("Files uploaded successfully.")
+		fileIdx++
+		return nil
+	})
+	if err != nil {
+		logger.Fatal().Err(err).Msg("Cannot walk over src directory.")
+	}
+
+	logger.Info().Msg("Files uploaded successfully.")
 
 }
