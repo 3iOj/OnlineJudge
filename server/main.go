@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"log"
 
 	"github.com/3iOj/OnlineJudge/api"
 	db "github.com/3iOj/OnlineJudge/db/sqlc"
@@ -13,22 +12,26 @@ import (
 
 func main() {
 	config, err := util.LoadConfig(".")
+	logger := util.GetLogger()
 	if err != nil {
-		log.Fatal("cannot load config:", err)
+		logger.Fatal().Err(err).Msg("cannot load config")
 	}
 	conn, err := sql.Open(config.DBDriver, fmt.Sprintf("postgresql://%s:%s@%s:5432/%s?sslmode=disable", config.DBUser, config.DBPassword, config.DBHost, config.DBName))
 	if err != nil {
-		log.Fatal("cannot connect to db:", err)
+		logger.Fatal().Err(err).Msg("cannot connect to db")
+	} else {
+		logger.Info().Msg("Connected to DB")
 	}
 	store := db.NewStore(conn)
 
 	server, err := api.NewServer(config, store)
 	if err != nil {
-		log.Fatal("cannot create server:", err)
+		logger.Fatal().Err(err).Msg("cannot create server")
 	}
 	server.Start(config.ServerPort)
 
 	if err != nil {
-		log.Fatal("cannot start server :", err)
+		logger.Fatal().Err(err).Msg("cannot start server")
 	}
+
 }

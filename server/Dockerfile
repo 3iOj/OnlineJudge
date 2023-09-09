@@ -1,5 +1,5 @@
 # Use the official Golang 1.20 image as the base image
-FROM golang:1.20-alpine3.18
+FROM golang:1.21-alpine3.18
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -11,6 +11,8 @@ COPY go.mod go.sum ./
 
 # Download the dependencies
 RUN go mod download
+RUN go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+RUN apk add --no-cache make
 
 # Copy the rest of the application code to the container
 # first dot represents the root of the folder
@@ -23,7 +25,7 @@ EXPOSE 8080
 # Build the application
 # RUN go build -o /main
 
-CMD ["air", "-c", ".air.toml"]
+CMD ["./startup.sh"]
 
 # Start the backend server
 # CMD ["/main"]

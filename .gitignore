@@ -3,10 +3,13 @@
 /client/node_modules/
 # Ignore .env files
 *.env*
+app.env
 
 # Ignore build artifacts
 /build
 /dist
+
+tmp/
 
 # Ignore Golang binary files
 *.exe
